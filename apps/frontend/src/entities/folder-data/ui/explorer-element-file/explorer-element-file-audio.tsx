@@ -1,4 +1,3 @@
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/shared/ui/ds/item';
 import { Separator } from '@/shared/ui/ds/separator';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
@@ -10,9 +9,13 @@ import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
 import Image from 'next/image';
+import { Card, CardContent } from '@/shared/ui/ds/card';
+import { cn } from '@/shared/utils/cn';
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/shared/ui/ds/item';
 
 export const ExplorerElementFileAudio = ({
   element,
+  className,
   ...props
 }: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemAudio'] }) => {
   const t = useTranslations('ExplorerElementAudio');
@@ -72,16 +75,26 @@ export const ExplorerElementFileAudio = ({
 
   return (
     <article className="contents">
-      <Item className="border-primary relative overflow-hidden" render={<Link {...props} scroll={false} />}>
+      <Card className="pointer-events-none relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50">
+        {/* Full-card link stays behind content so controls can opt into pointer events. */}
+        <Link
+          {...props}
+          scroll={false}
+          aria-label={element.name}
+          className={cn('pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none', className)}
+        />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
         <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
-        <Separator />
+        {/* Separator aligns with the card's padded header and content. */}
+        <Separator className="mx-(--card-spacing) w-auto!" />
+        {/* Cover remains part of card content without importing Item media styles. */}
         {!isNil(element.metadata.coverSrc) && (
-          <ItemMedia variant="image">
+          <CardContent className="w-fit">
             <Image src={element.metadata.coverSrc} width={40} height={40} alt="Cover" />
-          </ItemMedia>
+          </CardContent>
         )}
-        <ItemContent className="w-full">
+        <CardContent className="w-full">
+          {/* Inline metadata avoids nested cards inside the track card. */}
           <ItemGroup className="flex-row overflow-x-auto">
             {metadataItems.map((metadataItem) => {
               return (
@@ -99,8 +112,8 @@ export const ExplorerElementFileAudio = ({
               );
             })}
           </ItemGroup>
-        </ItemContent>
-      </Item>
+        </CardContent>
+      </Card>
     </article>
   );
 };

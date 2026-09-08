@@ -10,7 +10,6 @@ import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { QueryClient } from '@tanstack/react-query';
 import { type components } from '@/shared/api/openapi';
-import { ItemGroup } from '@/shared/ui/ds/item';
 import { throwError } from '@/shared/utils/throw-error';
 import { SendFolderDataToPlayer } from '@/widgets/player';
 import { SendFolderDataToGallery } from '@/widgets/gallery';
@@ -214,7 +213,8 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
         </BreadcrumbList>
       </Breadcrumb>
 
-      <ItemGroup className="gap-4! mb-4">
+      {/* Explorer entries use cards; list container provides shared spacing only. */}
+      <div role="list" className="mb-4 flex w-full flex-col gap-4">
         <nav className="contents">
           {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
           {folderData.folders.map((folder) => {
@@ -224,7 +224,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
         {folderData.files.map((file) => {
           return <ExplorerElementFile key={file.name} element={file} href={folderDataItemToHref(file)} />;
         })}
-      </ItemGroup>
+      </div>
     </section>
   );
 }
