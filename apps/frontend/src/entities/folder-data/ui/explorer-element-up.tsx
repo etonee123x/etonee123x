@@ -5,7 +5,10 @@ import { cn } from '@/shared/utils/cn';
 
 export const ExplorerElementUp = ({ className, ...props }: ComponentProps<typeof Link>) => {
   return (
-    <Card className="pointer-events-none relative ring-primary bg-muted/50 transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50">
+    <Card
+      size="sm"
+      className="pointer-events-none relative ring-primary bg-muted/50 transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+    >
       {/* Full-card link stays behind content so controls can opt into pointer events. */}
       <Link
         {...props}

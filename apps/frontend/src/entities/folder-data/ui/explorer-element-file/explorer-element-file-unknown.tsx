@@ -12,7 +12,10 @@ export const ExplorerElementFileUnknown = ({
 }: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemUnknown'] }) => {
   return (
     <article className="contents">
-      <Card className="pointer-events-none relative ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50">
+      <Card
+        size="sm"
+        className="pointer-events-none relative ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+      >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
           {...props}
