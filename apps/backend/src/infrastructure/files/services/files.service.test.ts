@@ -8,6 +8,31 @@ import { FileInspectorCacheService } from '@/infrastructure/files/services/file-
 import { FilesService } from '@/infrastructure/files/services/files.service';
 
 describe('FilesService', () => {
+  it('inspects every request when the cache has no directory', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'file-inspection-'));
+    const filePath = path.join(directory, 'a.bin');
+    await fs.writeFile(filePath, 'first');
+
+    const fileInspector = {
+      inspect: vi.fn().mockResolvedValue({ fileType: FILE_TYPES.UNKNOWN }),
+    };
+    const service = new FilesService({
+      filesStorage: { getPath: vi.fn().mockReturnValue(filePath) } as never,
+      fileInspector: fileInspector as never,
+      // No cache service must inspect every request.
+      fileInspectorCacheService: null,
+    });
+
+    try {
+      await service.getFileInspection({ key: 'a.bin' });
+      await service.getFileInspection({ key: 'a.bin' });
+
+      expect(fileInspector.inspect).toHaveBeenCalledTimes(2);
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('reuses disk inspection cache until file state changes', async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'file-inspection-'));
     const filePath = path.join(directory, 'a.bin');
@@ -26,7 +51,7 @@ describe('FilesService', () => {
     const service = new FilesService({
       filesStorage: { getPath: vi.fn().mockReturnValue(filePath) } as never,
       fileInspector: fileInspector as never,
-      fileInspectorCache: new FileInspectorCacheService({ directory: cacheDirectory }),
+      fileInspectorCacheService: new FileInspectorCacheService({ directory: cacheDirectory }),
     });
 
     try {
@@ -72,8 +97,8 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     const result = await filesService.upload({ key: 'a.bin', buffer });
@@ -108,8 +133,8 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     const storedFile = await filesService.delete({ key: 'a.bin' });
@@ -137,8 +162,8 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     await expect(filesService.exists({ key: 'missing.bin' })).resolves.toBe(false);

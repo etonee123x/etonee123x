@@ -8,6 +8,8 @@ import { useTranslations } from 'next-intl';
 import { type ComponentProps } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
+import { isNil } from '@/shared/utils/is-nil';
+import Image from 'next/image';
 
 export const ExplorerElementFileAudio = ({
   element,
@@ -74,6 +76,11 @@ export const ExplorerElementFileAudio = ({
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
         <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
         <Separator />
+        {!isNil(element.metadata.coverSrc) && (
+          <ItemMedia variant="image">
+            <Image src={element.metadata.coverSrc} width={40} height={40} alt="Cover" />
+          </ItemMedia>
+        )}
         <ItemContent className="w-full">
           <ItemGroup className="flex-row overflow-x-auto">
             {metadataItems.map((metadataItem) => {

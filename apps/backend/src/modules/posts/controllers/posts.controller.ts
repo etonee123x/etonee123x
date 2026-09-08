@@ -80,8 +80,11 @@ export class PostsController extends Controller {
     return response.send(deletedPost);
   };
 
-  constructor(private readonly postsService: PostsService) {
+  private readonly postsService: PostsService;
+
+  constructor(parameters: { postsService: PostsService }) {
     super();
+    this.postsService = parameters.postsService;
 
     this.router.get('/posts', ...postsGetValidationRules, this.getPosts);
     this.router.post('/posts', cookieAuth, parseFiles, ...postCreateValidationRules, this.createPost);

@@ -28,6 +28,9 @@ allOf:
             nullable: true
           duration:
             type: number
+          coverSrc:
+            type: string
+            nullable: true
         required:
           - bitrate
           - duration
@@ -35,6 +38,7 @@ allOf:
           - artists
           - bpm
           - year
+          - coverSrc
     required:
       - metadata
       - fileType

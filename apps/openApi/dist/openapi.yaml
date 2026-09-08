@@ -354,6 +354,9 @@ components:
                   nullable: true
                 duration:
                   type: number
+                coverSrc:
+                  type: string
+                  nullable: true
               required:
                 - bitrate
                 - duration
@@ -361,6 +364,7 @@ components:
                 - artists
                 - bpm
                 - year
+                - coverSrc
           required:
             - metadata
             - fileType

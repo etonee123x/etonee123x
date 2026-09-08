@@ -52,12 +52,14 @@ const fileInspector = new FileInspector({
   },
   filesStorage,
 });
-// Warmup composes the same cache-aware API as HTTP, then calls getFileInspection rather than inspecting directly.
-const fileInspectorCache = new FileInspectorCacheService();
+// Cache warmup needs persistent storage; an absent path disables it.
+const fileInspectorCacheService = appConfig.fileInspectorCachePath
+  ? new FileInspectorCacheService({ directory: appConfig.fileInspectorCachePath })
+  : null;
 const filesService = new FilesService({
   filesStorage,
   fileInspector,
-  fileInspectorCache,
+  fileInspectorCacheService,
 });
 const pending = new Map<string, Promise<string>>();
 

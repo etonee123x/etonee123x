@@ -104,6 +104,7 @@ multipart upload
 | `DATABASE_PATH` | Путь к runtime-данным | `../../infra/database` |
 | `CONTENT_PATH` | Каталог с медиа-контентом | `../../infra/content` |
 | `UPLOADS_PATH` | Каталог загруженных пользователем файлов | `../../infra/uploads` |
+| `FILE_INSPECTOR_CACHE_PATH` | Необязательный каталог кэша результатов file inspector; без переменной кэш отключён | `../../infra/caches/file-inspector` |
 | `JSON_BODY_LIMIT` | Лимит размера JSON тела запроса | `1mb` |
 | `CORS_ORIGIN` | Разрешённые origin для CORS, список через запятую | `http://localhost:3000` |
 | `REQUEST_TIMEOUT_MS` | Максимальное время обработки запроса в миллисекундах | `30000` |

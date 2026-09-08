@@ -59,8 +59,9 @@ describe('FolderDataService', () => {
     await fs.mkdir(path.join(albumDirectory, '.git'), { recursive: true });
     await fs.writeFile(path.join(albumDirectory, 'song.mp3'), Buffer.from('song'));
 
+    // FolderDataService consumes cache-aware inspection rather than raw inspector output.
     const filesService = {
-      getStoredFile: vi.fn(async (parameters: { key: string }) => {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
         return buildStoredFile(path.basename(parameters.key));
       }),
     };
@@ -84,7 +85,7 @@ describe('FolderDataService', () => {
         return file.name;
       }),
     ).toEqual(['song.mp3']);
-    expect(filesService.getStoredFile).toHaveBeenCalledWith({
+    expect(filesService.getFileInspection).toHaveBeenCalledWith({
       key: 'album/song.mp3',
     });
   });
@@ -97,8 +98,9 @@ describe('FolderDataService', () => {
     await fs.mkdir(albumDirectory, { recursive: true });
     await fs.writeFile(path.join(albumDirectory, 'song.mp3'), Buffer.from('song'));
 
+    // Keep mock aligned with FilesService's public inspection method.
     const filesService = {
-      getStoredFile: vi.fn(async (parameters: { key: string }) => {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
         return buildStoredFile(path.basename(parameters.key));
       }),
     };
@@ -113,7 +115,7 @@ describe('FolderDataService', () => {
     expect(result.file).not.toBeNull();
     expect(result.file?.path).toBe('album/song.mp3');
     expect(result.pathDirectory).toBe('album');
-    expect(filesService.getStoredFile).toHaveBeenNthCalledWith(1, { key: 'album/song.mp3' });
+    expect(filesService.getFileInspection).toHaveBeenNthCalledWith(1, { key: 'album/song.mp3' });
   });
 
   it('rejects path traversal attempts with 400', async () => {

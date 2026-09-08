@@ -36,13 +36,15 @@ export class FolderDataModule extends Module {
       filesStorage,
     });
 
-    // Folder responses obtain all file metadata through this cache-aware FilesService.
-    const fileInspectorCache = new FileInspectorCacheService();
+    // Cache service exists only when persistent cache storage is configured.
+    const fileInspectorCacheService = appConfig.fileInspectorCachePath
+      ? new FileInspectorCacheService({ directory: appConfig.fileInspectorCachePath })
+      : null;
 
     const filesService = new FilesService({
       filesStorage,
       fileInspector,
-      fileInspectorCache,
+      fileInspectorCacheService,
     });
 
     const folderDataService = new FolderDataService({ filesService, filesLocation });

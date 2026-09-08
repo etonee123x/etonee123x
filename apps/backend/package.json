@@ -13,9 +13,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "folder-data:file-inspector-cache:clear": "tsx src/scripts/get-folder-data/clear-file-inspector-cache",
-    "folder-data:file-inspector-cache:gc": "tsx src/scripts/get-folder-data/gc-file-inspector-cache",
-    "folder-data:file-inspector-cache:warm": "tsx src/scripts/get-folder-data/warm-file-inspector-cache",
+    "script:file-inspector-cache:clear": "tsx src/scripts/file-inspector-cache/clear",
+    "script:file-inspector-cache:warm-folder-data": "tsx src/scripts/file-inspector-cache/warm",
     "script:clearUnusedUploads": "tsx src/scripts/clearUnusedUploads",
     "generate:openapi": "openapi-typescript ../openApi/openapi/openapi.yaml --output ./src/types/openapi.ts --enum-values"
   },
