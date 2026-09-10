@@ -10,7 +10,6 @@ import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
 import { Card, CardContent } from '@/shared/ui/ds/card';
 import { cn } from '@/shared/utils/cn';
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/shared/ui/ds/item';
 
 export const ExplorerElementFileAudio = ({
   element,
@@ -87,34 +86,30 @@ export const ExplorerElementFileAudio = ({
         />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
-        <div>
+        <div className="flex">
           {!isNil(element.metadata.coverSrc) && (
-            <img className="w-auto h-full min-h-0 object-cover" src={element.metadata.coverSrc} alt="Cover" />
+            <img className="h-22 aspect-square object-cover rounded-sm" src={element.metadata.coverSrc} alt="Cover" />
           )}
-          <div>
+          <div className="w-full">
             <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
             {/* Separator aligns with the card's padded header and content. */}
-            <Separator className="mx-(--card-spacing) w-auto!" />
+            <Separator className="m-(--card-spacing) w-auto!" />
             {/* Cover remains part of card content without importing Item media styles. */}
             <CardContent className="w-full">
               {/* Inline metadata avoids nested cards inside the track card. */}
-              <ItemGroup className="flex-row overflow-x-auto">
+              <ul className="flex justify-between overflow-x-auto">
                 {metadataItems.map((metadataItem) => {
                   return (
-                    <Item size="xs" className="flex-nowrap" key={metadataItem.key}>
-                      <ItemMedia className="self-center! pb-0.5">
-                        <metadataItem.Icon className="size-6" />
-                      </ItemMedia>
-                      <ItemContent className="text-nowrap">
-                        <ItemTitle className="text-muted-foreground font-normal">{metadataItem.title}</ItemTitle>
-                        <ItemDescription className="text-secondary-foreground text-sm!">
-                          {metadataItem.value}
-                        </ItemDescription>
-                      </ItemContent>
-                    </Item>
+                    <li key={metadataItem.key} className="group/metadata-item flex gap-2 items-center">
+                      <metadataItem.Icon className="size-6" />
+                      <span className="text-nowrap flex flex-col group-last/metadata-item:text-end">
+                        <span className="text-muted-foreground font-normal">{metadataItem.title}</span>
+                        <span className="text-secondary-foreground">{metadataItem.value}</span>
+                      </span>
+                    </li>
                   );
                 })}
-              </ItemGroup>
+              </ul>
             </CardContent>
           </div>
         </div>
