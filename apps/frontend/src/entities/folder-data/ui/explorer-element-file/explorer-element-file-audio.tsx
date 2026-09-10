@@ -75,7 +75,7 @@ export const ExplorerElementFileAudio = ({
     <article className="contents">
       <Card
         size="sm"
-        className="p-(--card-spacing) gap-0 pointer-events-none relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+        className="@container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
@@ -86,32 +86,35 @@ export const ExplorerElementFileAudio = ({
         />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
-        <div className="flex">
+        <div className="grid grid-cols-1 @md/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
           {!isNil(element.metadata.coverSrc) && (
-            <img className="h-23 aspect-square object-cover rounded-sm" src={element.metadata.coverSrc} alt="Cover" />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              data-cover
+              className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @md:mt-0 @md:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @md/audio:mb-0 @md/audio:size-23 @md/audio:row-span-3 @md/audio:rounded-sm"
+              src={element.metadata.coverSrc}
+              alt="Cover"
+            />
           )}
-          <div className="w-full">
-            <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
-            {/* Separator aligns with the card's padded header and content. */}
-            <Separator className="m-(--card-spacing) w-auto!" />
-            {/* Cover remains part of card content without importing Item media styles. */}
-            <CardContent className="w-full">
-              {/* Inline metadata avoids nested cards inside the track card. */}
-              <ul className="flex justify-between gap-8 overflow-x-auto">
-                {metadataItems.map((metadataItem) => {
-                  return (
-                    <li key={metadataItem.key} className="group/metadata-item flex gap-2 items-center">
-                      <metadataItem.Icon className="size-6" />
-                      <span className="text-nowrap flex flex-col group-last/metadata-item:text-end">
-                        <span className="text-muted-foreground font-normal">{metadataItem.title}</span>
-                        <span className="text-secondary-foreground">{metadataItem.value}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </CardContent>
-          </div>
+          <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+          {/* Separator aligns with the card's padded header and content. */}
+          <Separator className="m-(--card-spacing) w-auto!" />
+          <CardContent>
+            <dl className="flex flex-wrap gap-x-8 gap-y-2">
+              {metadataItems.map((metadataItem) => {
+                return (
+                  <div
+                    key={metadataItem.key}
+                    className="grid gap-x-2 grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center"
+                  >
+                    <metadataItem.Icon className="row-span-2 size-6 shrink-0" />
+                    <dt className="text-muted-foreground font-normal">{metadataItem.title}</dt>
+                    <dd className="text-secondary-foreground">{metadataItem.value}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </CardContent>
         </div>
       </Card>
     </article>
