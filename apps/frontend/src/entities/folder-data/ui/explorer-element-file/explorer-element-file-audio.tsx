@@ -88,7 +88,7 @@ export const ExplorerElementFileAudio = ({
 
         <div className="flex">
           {!isNil(element.metadata.coverSrc) && (
-            <img className="h-22 aspect-square object-cover rounded-sm" src={element.metadata.coverSrc} alt="Cover" />
+            <img className="h-23 aspect-square object-cover rounded-sm" src={element.metadata.coverSrc} alt="Cover" />
           )}
           <div className="w-full">
             <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
@@ -97,7 +97,7 @@ export const ExplorerElementFileAudio = ({
             {/* Cover remains part of card content without importing Item media styles. */}
             <CardContent className="w-full">
               {/* Inline metadata avoids nested cards inside the track card. */}
-              <ul className="flex justify-between overflow-x-auto">
+              <ul className="flex justify-between gap-8 overflow-x-auto">
                 {metadataItems.map((metadataItem) => {
                   return (
                     <li key={metadataItem.key} className="group/metadata-item flex gap-2 items-center">
