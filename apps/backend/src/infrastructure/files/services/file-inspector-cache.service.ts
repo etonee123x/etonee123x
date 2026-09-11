@@ -3,6 +3,7 @@ import nodeFsPromises from 'node:fs/promises';
 import nodePath from 'node:path';
 
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
+import { DirectoryCleaner, type DirectoryCleanerResult } from './directory-cleaner.service';
 
 interface FileInspectorCacheEntry {
   // File state is persisted alongside inspection so a malformed or mismatched entry never becomes a HIT.
@@ -18,6 +19,8 @@ const createCacheKey = (parameters: { path: string; size: number; mtimeMs: numbe
 };
 
 export class FileInspectorCacheService {
+  private readonly directoryCleaner = new DirectoryCleaner();
+
   private readonly directory: string;
 
   constructor(parameters: { directory: string }) {
@@ -62,7 +65,7 @@ export class FileInspectorCacheService {
     await nodeFsPromises.rename(temporaryPath, cachePath);
   }
 
-  async clear(): Promise<void> {
-    await nodeFsPromises.rm(this.directory, { recursive: true, force: true });
+  async clear(): Promise<DirectoryCleanerResult> {
+    return this.directoryCleaner.clear(this.directory);
   }
 }

@@ -12,6 +12,8 @@ import { FilesLocation } from '@/infrastructure/files/locations/files-location';
 import { FileInspectorCacheService } from '@/infrastructure/files/services/file-inspector-cache.service';
 import { FilesService } from '@/infrastructure/files/services/files.service';
 import { FsFilesStorage } from '@/infrastructure/files/storages/fs-files-storage';
+import { AudioCoverService } from '@/infrastructure/files/services/audio-cover.service';
+import { logger } from '@/shared/logger';
 
 const CONCURRENCY = 6;
 const PROHIBITED_DIRECTORY_NAMES = new Set(['.git']);
@@ -38,8 +40,9 @@ const getFileKeys = async function* (directory: string, rootDirectory: string): 
 
 const filesLocation = new FilesLocation({ fs: appConfig.contentPath, src: '/content' });
 const filesStorage = new FsFilesStorage({ filesLocation });
+const audioCoverService = new AudioCoverService({ directory: appConfig.audioCoversPath });
 // Named dependencies mirror the HTTP composition while keeping warmup's entrypoint self-contained.
-const audioFileInspector = new AudioFileInspector({ filesStorage });
+const audioFileInspector = new AudioFileInspector({ filesStorage, audioCoverService });
 const imageFileInspector = new ImageFileInspector({ filesStorage });
 const videoFileInspector = new VideoFileInspector({ filesStorage });
 const unknownFileInspector = new UnknownFileInspector({ filesStorage });
@@ -62,10 +65,20 @@ const filesService = new FilesService({
   fileInspectorCacheService,
 });
 const pending = new Map<string, Promise<string>>();
+const warmedFilesByDirectory = new Map<string, number>();
+
+const getWarmupDirectory = (key: string): string => {
+  // Group by the exact containing directory, so nested albums are not collapsed into the top-level folder.
+  return key.includes('/') ? nodePath.posix.dirname(key) : '.';
+};
 
 for await (const key of getFileKeys(appConfig.contentPath, appConfig.contentPath)) {
   const task = (async () => {
     await filesService.getFileInspection({ key });
+    const directory = getWarmupDirectory(key);
+
+    // Count only successful inspections so final logs describe warmed files, not scheduled work.
+    warmedFilesByDirectory.set(directory, (warmedFilesByDirectory.get(directory) ?? 0) + 1);
     return key;
   })();
   pending.set(key, task);
@@ -77,3 +90,17 @@ for await (const key of getFileKeys(appConfig.contentPath, appConfig.contentPath
 }
 
 await Promise.all(pending.values());
+
+let warmedFilesCount = 0;
+for (const filesCount of warmedFilesByDirectory.values()) {
+  warmedFilesCount += filesCount;
+}
+const warmedDirectoryEntries = [...warmedFilesByDirectory].toSorted(([left], [right]) => {
+  return left.localeCompare(right);
+});
+
+logger.log(`File inspector warmup overall: ${warmedFilesCount} warmed files.`);
+
+for (const [directory, filesCount] of warmedDirectoryEntries) {
+  logger.log(`File inspector warmup directory: ${directory} (${filesCount} warmed files).`);
+}

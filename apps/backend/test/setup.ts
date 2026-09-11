@@ -10,6 +10,7 @@ process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES = '10';
 process.env.DATABASE_PATH = path.resolve(infrastructureDirectory, 'database');
 process.env.CONTENT_PATH = path.resolve(infrastructureDirectory, 'content');
 process.env.UPLOADS_PATH = path.resolve(infrastructureDirectory, 'uploads');
+process.env.AUDIO_COVERS_PATH = path.resolve(infrastructureDirectory, 'covers');
 process.env.FILE_INSPECTOR_CACHE_PATH = path.resolve(infrastructureDirectory, 'caches', 'file-inspector');
 process.env.JSON_BODY_LIMIT = '1mb';
 process.env.CORS_ORIGIN = 'http://localhost:3000';

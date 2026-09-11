@@ -11,6 +11,7 @@ import { UnknownFileInspector } from '@/infrastructure/files/inspectors/unknown.
 import { FilesLocation } from '@/infrastructure/files/locations/files-location';
 import { FileInspectorCacheService } from '@/infrastructure/files/services/file-inspector-cache.service';
 import { appConfig } from '@/config/app-config';
+import { AudioCoverService } from '@/infrastructure/files/services/audio-cover.service';
 
 export class FolderDataModule extends Module {
   constructor() {
@@ -19,9 +20,10 @@ export class FolderDataModule extends Module {
     const filesLocation = new FilesLocation({ fs: contentPath, src: '/content' });
 
     const filesStorage = new FsFilesStorage({ filesLocation });
+    const audioCoverService = new AudioCoverService({ directory: appConfig.audioCoversPath });
 
     // Keep each dependency named so folder-data composition remains inspectable and replaceable.
-    const audioFileInspector = new AudioFileInspector({ filesStorage });
+    const audioFileInspector = new AudioFileInspector({ filesStorage, audioCoverService });
     const imageFileInspector = new ImageFileInspector({ filesStorage });
     const videoFileInspector = new VideoFileInspector({ filesStorage });
     const unknownFileInspector = new UnknownFileInspector({ filesStorage });

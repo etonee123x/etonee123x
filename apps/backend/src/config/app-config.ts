@@ -60,6 +60,10 @@ class AppConfig {
   */
   readonly uploadsPath: string;
   /**
+  Path to audio cover files extracted from embedded audio metadata.
+  */
+  readonly audioCoversPath: string;
+  /**
   Optional path to file inspector cache files; without it, caching is disabled.
   */
   readonly fileInspectorCachePath: string | undefined;
@@ -104,6 +108,7 @@ class AppConfig {
     this.databasePath = AppConfig.getRequiredEnvironmentVariable('DATABASE_PATH');
     this.contentPath = AppConfig.getRequiredEnvironmentVariable('CONTENT_PATH');
     this.uploadsPath = AppConfig.getRequiredEnvironmentVariable('UPLOADS_PATH');
+    this.audioCoversPath = AppConfig.getRequiredEnvironmentVariable('AUDIO_COVERS_PATH');
     this.fileInspectorCachePath = AppConfig.getOptionalEnvironmentVariable('FILE_INSPECTOR_CACHE_PATH');
     this.jsonBodyLimit = AppConfig.getRequiredEnvironmentVariable('JSON_BODY_LIMIT');
     this.requestTimeoutMs = AppConfig.getEnvironmentVariablePositiveNumber('REQUEST_TIMEOUT_MS');

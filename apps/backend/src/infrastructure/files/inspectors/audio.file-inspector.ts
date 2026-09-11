@@ -3,15 +3,26 @@ import { FILE_TYPES } from '@/shared/domain/file-types/file-types.domain';
 import type { StoredFileAudio } from '@/shared/domain/stored-file/audio.stored-file';
 import { FileInspectorBase } from './base.file-inspector';
 import type { StoredFileSource } from '../types/stored-file-source';
+import type { FilesStorage } from '../storages/files-storage';
+import type { AudioCoverService } from '../services/audio-cover.service';
 
 export class AudioFileInspector extends FileInspectorBase {
-  private getCoverSrc(pictures: Array<IPicture>): string | null {
+  private readonly audioCoverService: AudioCoverService | null;
+
+  constructor(parameters: { filesStorage: FilesStorage; audioCoverService: AudioCoverService | null }) {
+    super({ filesStorage: parameters.filesStorage });
+    // Null is reserved for isolated tests that intentionally skip cover persistence.
+    this.audioCoverService = parameters.audioCoverService;
+  }
+
+  private async getCoverSrc(pictures: Array<IPicture>): Promise<string | null> {
     const firstPicture = pictures[0];
-    if (!firstPicture) {
+    if (!(firstPicture && this.audioCoverService)) {
       return null;
     }
 
-    return `data:${firstPicture.format};base64,${Buffer.from(firstPicture.data).toString('base64')}`;
+    // Hashing and dedupe live in the cover service; inspector only chooses the first embedded picture.
+    return this.audioCoverService.save({ buffer: Buffer.from(firstPicture.data), format: firstPicture.format });
   }
 
   canInspect(parameters: { fileType: (typeof FILE_TYPES)[keyof typeof FILE_TYPES] }) {
@@ -25,7 +36,7 @@ export class AudioFileInspector extends FileInspectorBase {
 
     const specific = {
       metadata: {
-        coverSrc: this.getCoverSrc(audioMetadata.common.picture ?? []),
+        coverSrc: await this.getCoverSrc(audioMetadata.common.picture ?? []),
         duration: (audioMetadata.format.duration ?? 0) * 1000,
         bitrate: audioMetadata.format.bitrate ? audioMetadata.format.bitrate / 1000 : null,
         album: audioMetadata.common.album ?? null,

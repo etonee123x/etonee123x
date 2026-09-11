@@ -27,7 +27,8 @@ export class PostsModule extends Module {
 
     const filesStorage = new FsFilesStorage({ filesLocation });
 
-    const audioFileInspector = new AudioFileInspector({ filesStorage });
+    // Upload inspection does not persist extracted covers yet; folder-data owns cover generation for now.
+    const audioFileInspector = new AudioFileInspector({ filesStorage, audioCoverService: null });
     const videoFileInspector = new VideoFileInspector({ filesStorage });
     const imageFileInspector = new ImageFileInspector({ filesStorage });
     const unknownFileInspector = new UnknownFileInspector({ filesStorage });
