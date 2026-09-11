@@ -34,7 +34,7 @@ const ActiveTrackProgress = ({ duration }: { duration: number }) => {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 inset-s-0 bg-primary/20"
+      className="pointer-events-none absolute -z-1 inset-y-0 inset-s-0 bg-primary/20 transition-colors duration-100 group-hover/audio:bg-primary/50"
       style={{ width: `${percent}%` }}
     />
   );

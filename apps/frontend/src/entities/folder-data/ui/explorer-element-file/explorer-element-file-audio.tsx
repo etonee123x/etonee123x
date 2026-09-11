@@ -75,7 +75,7 @@ export const ExplorerElementFileAudio = ({
     <article className="contents">
       <Card
         size="sm"
-        className="@container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+        className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link

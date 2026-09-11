@@ -5,7 +5,9 @@
 @theme {
   --spacing-header-height: 3rem;
 
-  --z-player: 1000;
+  --z-index-player: 1000;
+  --z-index-footer: 1000;
+  --z-index-header: 1000;
   --z-index-modal: 10000;
   --z-index-explorer-navbar: 10;
 

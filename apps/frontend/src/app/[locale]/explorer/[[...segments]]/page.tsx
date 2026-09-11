@@ -199,7 +199,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
       <SendFolderDataToGallery folderData={folderData} lastNavigationItemHref={lastNavigationItem.href} />
       <h1 className="h1 mb-4">{t('content')}</h1>
 
-      <Breadcrumb className="mb-4 sticky top-header-height">
+      <Breadcrumb className="mb-4 z-explorer-navbar sticky top-header-height">
         <BreadcrumbList>
           {breadcrumbLinks.map((link, index) => {
             return (

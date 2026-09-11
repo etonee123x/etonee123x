@@ -29,7 +29,7 @@ export const Header = async ({ className }: Readonly<HTMLProps<HTMLDivElement>>)
   ];
 
   return (
-    <header className={cn('layout-container flex items-center py-2 gap-4', className)}>
+    <header className={cn('layout-container flex items-center py-2 z-header gap-4', className)}>
       <NavigationMenu className="-ms-2.5">
         <NavigationMenuList>
           {NAVIGATION_MENU_ITEMS.map((navigationMenuItem) => {
