@@ -60,7 +60,7 @@ export class FileInspectorCacheService {
     const temporaryPath = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     const entry: FileInspectorCacheEntry = parameters;
 
-    // Rename publishes only complete JSON to readers, including concurrent warmup/request processes.
+    // Rename publishes only complete JSON to readers, including concurrent warm-up and request processes.
     await nodeFsPromises.writeFile(temporaryPath, JSON.stringify(entry));
     await nodeFsPromises.rename(temporaryPath, cachePath);
   }

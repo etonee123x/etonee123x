@@ -15,7 +15,7 @@
     "lint:fix": "eslint . --fix",
     "script:audio-covers:clear": "tsx src/scripts/audio-covers/clear",
     "script:file-inspector-cache:clear": "tsx src/scripts/file-inspector-cache/clear",
-    "script:file-inspector-cache:warm-folder-data": "tsx src/scripts/file-inspector-cache/warm",
+    "script:file-inspector-cache:warm-up-content": "tsx src/scripts/file-inspector-cache/warm-up-content",
     "script:generated-artifacts:clear": "npm run script:file-inspector-cache:clear && npm run script:audio-covers:clear",
     "script:clearUnusedUploads": "tsx src/scripts/clearUnusedUploads",
     "generate:openapi": "openapi-typescript ../openApi/openapi/openapi.yaml --output ./src/types/openapi.ts --enum-values"

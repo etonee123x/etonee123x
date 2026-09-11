@@ -135,7 +135,7 @@ multipart upload
 | `npm run lint:fix` | Запускает ESLint с автоматическими исправлениями. |
 | `npm run script:audio-covers:clear` | Удаляет извлечённые из аудио обложки. |
 | `npm run script:file-inspector-cache:clear` | Удаляет persistent-кэш результатов file inspector. |
-| `npm run script:file-inspector-cache:warm-folder-data` | Прогревает кэш file inspector для файлов из `CONTENT_PATH`. |
+| `npm run script:file-inspector-cache:warm-up-content` | Прогревает кэш file inspector для файлов из `CONTENT_PATH`. |
 | `npm run script:generated-artifacts:clear` | Удаляет сгенерированные derived-файлы: кэш инспектора и аудиообложки. |
 | `npm run script:clearUnusedUploads` | Удаляет upload-файлы, которые больше не используются постами. |
 | `npm run generate:openapi` | Генерирует TypeScript-типы из OpenAPI-контракта. |

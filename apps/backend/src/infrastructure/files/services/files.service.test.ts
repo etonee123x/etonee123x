@@ -169,4 +169,50 @@ describe('FilesService', () => {
     await expect(filesService.exists({ key: 'missing.bin' })).resolves.toBe(false);
     expect(filesStorage.exists).toHaveBeenCalledWith({ key: 'missing.bin' });
   });
+
+  it('warms up content inspection and groups successful files by containing directory', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'content-warm-up-'));
+    const musicDirectory = path.join(directory, 'music', 'album');
+    const imagesDirectory = path.join(directory, 'images');
+    const gitDirectory = path.join(directory, '.git');
+
+    await fs.mkdir(musicDirectory, { recursive: true });
+    await fs.mkdir(imagesDirectory);
+    await fs.mkdir(gitDirectory);
+    await fs.writeFile(path.join(directory, 'root.txt'), 'root');
+    await fs.writeFile(path.join(musicDirectory, 'track.mp3'), 'track');
+    await fs.writeFile(path.join(imagesDirectory, 'cover.png'), 'cover');
+    await fs.writeFile(path.join(gitDirectory, 'ignored.txt'), 'ignored');
+
+    const fileInspector = { inspect: vi.fn().mockResolvedValue({ fileType: FILE_TYPES.UNKNOWN }) };
+    const service = new FilesService({
+      filesStorage: {
+        getPath: ({ key }: { key: string }) => {
+          return path.join(directory, key);
+        },
+      } as never,
+      fileInspector: fileInspector as never,
+      // Content warm-up can validate inspection without writing a persistent cache.
+      fileInspectorCacheService: null,
+    });
+
+    try {
+      const result = await service.warmUpContent({ directory });
+
+      expect(result).toEqual({
+        filesCount: 3,
+        directories: [
+          { directory: '.', filesCount: 1 },
+          { directory: 'images', filesCount: 1 },
+          { directory: 'music/album', filesCount: 1 },
+        ],
+      });
+      expect(fileInspector.inspect).toHaveBeenCalledTimes(3);
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'root.txt' });
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'music/album/track.mp3' });
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'images/cover.png' });
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  });
 });
