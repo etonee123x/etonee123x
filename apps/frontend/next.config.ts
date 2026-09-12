@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
         destination: `${process.env.SERVER_ORIGIN}/uploads/:path*`,
       },
       {
+        source: '/covers/:path*',
+        destination: `${process.env.SERVER_ORIGIN}/covers/:path*`,
+      },
+      {
         source: '/content/:path*',
         destination: `${process.env.SERVER_ORIGIN}/content/:path*`,
       },

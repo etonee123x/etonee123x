@@ -5,13 +5,11 @@ import { type components } from '@/shared/api/openapi';
 import { type ComponentProps } from 'react';
 import { ExplorerElementHeader } from '../../explorer-element-header';
 import { Video } from './video';
-import { cn } from '@/shared/utils/cn';
 
 export const ExplorerElementFileVideo = ({
   element,
-  className,
-  ...props
-}: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemVideo'] }) => {
+  href,
+}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemVideo'] }) => {
   return (
     <article className="contents">
       <Card
@@ -20,10 +18,10 @@ export const ExplorerElementFileVideo = ({
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
-          {...props}
+          href={href}
           scroll={false}
           aria-label={element.name}
-          className={cn('pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none', className)}
+          className="pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none"
         />
         <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
         {/* Separator aligns with the card's padded header and content. */}

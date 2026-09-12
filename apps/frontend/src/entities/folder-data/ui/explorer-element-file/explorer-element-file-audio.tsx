@@ -9,13 +9,11 @@ import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
 import { Card, CardContent } from '@/shared/ui/ds/card';
-import { cn } from '@/shared/utils/cn';
 
 export const ExplorerElementFileAudio = ({
   element,
-  className,
-  ...props
-}: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemAudio'] }) => {
+  href,
+}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemAudio'] }) => {
   const t = useTranslations('ExplorerElementAudio');
 
   const metadataItems = [
@@ -79,19 +77,19 @@ export const ExplorerElementFileAudio = ({
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
-          {...props}
+          href={href}
           scroll={false}
           aria-label={element.name}
-          className={cn('pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none', className)}
+          className="pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none"
         />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
-        <div className="grid grid-cols-1 @md/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
+        <div className="grid grid-cols-1 @sm/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
           {!isNil(element.metadata.coverSrc) && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               data-cover
-              className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @md:mt-0 @md:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @md/audio:mb-0 @md/audio:size-23 @md/audio:row-span-3 @md/audio:rounded-sm"
+              className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
               src={element.metadata.coverSrc}
               alt="Cover"
             />

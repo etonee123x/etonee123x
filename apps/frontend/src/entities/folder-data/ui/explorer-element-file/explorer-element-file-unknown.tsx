@@ -3,13 +3,11 @@ import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
 import { type ComponentProps } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
-import { cn } from '@/shared/utils/cn';
 
 export const ExplorerElementFileUnknown = ({
   element,
-  className,
-  ...props
-}: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemUnknown'] }) => {
+  href,
+}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemUnknown'] }) => {
   return (
     <article className="contents">
       <Card
@@ -18,9 +16,9 @@ export const ExplorerElementFileUnknown = ({
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
-          {...props}
+          href={href}
           aria-label={element.name}
-          className={cn('pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none', className)}
+          className="pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none"
         />
         <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
       </Card>

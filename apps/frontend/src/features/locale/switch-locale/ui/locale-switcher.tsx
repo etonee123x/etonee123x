@@ -22,7 +22,10 @@ export const LocaleSwitcher = ({ className }: Readonly<React.ComponentProps<type
           // always match for the current route, we can skip runtime checks.
           params: parameters,
         },
-        { locale },
+        {
+          locale,
+          scroll: false,
+        },
       );
     },
     [parameters, pathname, router],
