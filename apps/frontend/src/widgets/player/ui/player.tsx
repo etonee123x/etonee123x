@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ComponentProps } from 'react';
+import { useCallback, useState, type ComponentProps } from 'react';
 import { useAudioPlayer } from '@/entities/audio-player';
 import { Check, Link, Pause, Play, Shuffle, SkipBack, SkipForward, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -15,6 +15,10 @@ import { useIsTouchOnly } from '@/shared/hooks/use-is-touch-only';
 import { useHasMounted } from '@/shared/hooks/use-has-mounted';
 import { throwError } from '@/shared/utils/throw-error';
 import { DEFAULT_VOLUME } from '@/entities/audio-player/model/local-storage-volume';
+import { cn } from '@/shared/utils/cn';
+import { isNil } from '@/shared/utils/is-nil';
+import { useGalleryContext } from '@/shared/lib/gallery';
+import Image from 'next/image';
 
 const millisecondsToTimeFormats = (milliseconds: number) => {
   return {
@@ -23,7 +27,7 @@ const millisecondsToTimeFormats = (milliseconds: number) => {
   };
 };
 
-const PlayerSlider = () => {
+const PlayerSlider = ({ className }: Pick<ComponentProps<'div'>, 'className'>) => {
   const t = useTranslations('ThePlayer');
   const { audio, track } = useAudioPlayer();
   if (!track) {
@@ -76,14 +80,19 @@ const PlayerSlider = () => {
   };
 
   return (
-    <div className="tabular-nums w-full mx-auto flex justify-between items-center gap-2">
+    <div
+      className={cn(
+        'tabular-nums w-full mx-auto flex text-sm text-muted-foreground justify-between items-center gap-2',
+        className,
+      )}
+    >
       <time dateTime={currentTimeFormats.iso}>{currentTimeFormats.humanReadable}</time>
       <Slider
         aria-label={t('trackProgress')}
         className="cursor-pointer"
         max={duration / 1000}
         min={0}
-        step={0.1}
+        step={1}
         onValueChange={onValueChange}
         onValueCommitted={onValueCommitted}
         value={[sliderTimeSeconds]}
@@ -132,7 +141,7 @@ const PlayerControlsVolume = () => {
         className="cursor-pointer w-5/6 max-w-20"
         max={1}
         min={0}
-        step={0.01}
+        step={0.05}
         onValueChange={onValueChangeVolume}
         value={[volume]}
       />
@@ -267,21 +276,63 @@ const PlayerCopyLinkButton = () => {
   );
 };
 
+const PlayerCoverButton = () => {
+  const t = useTranslations('ThePlayer');
+  const { track } = useAudioPlayer();
+  const { open } = useGalleryContext();
+
+  const onClick = useCallback(() => {
+    if (!track?.metadata.cover) {
+      return;
+    }
+
+    const cover = {
+      src: track.metadata.cover.src,
+      width: track.metadata.cover.width,
+      height: track.metadata.cover.height,
+      name: track.name,
+      type: 'image' as const,
+    };
+
+    open(cover, [cover], { shouldShowName: true });
+  }, [open, track]);
+
+  if (isNil(track?.metadata.cover)) {
+    return null;
+  }
+
+  return (
+    <Button
+      className="ms-auto me-2 rounded-sm size-10 p-0 overflow-hidden"
+      variant="ghost"
+      aria-label={t('openCover')}
+      onClick={onClick}
+    >
+      <Image
+        width={track.metadata.cover.width}
+        height={track.metadata.cover.height}
+        src={track.metadata.cover.src}
+        alt={t('cover', { trackName: track.name })}
+      />
+    </Button>
+  );
+};
+
 export const Player = () => {
   const t = useTranslations('ThePlayer');
 
   const { track, close } = useAudioPlayer();
 
-  const onClickClose = () => {
+  const onClickClose = useCallback(() => {
     close();
-  };
+  }, [close]);
 
   if (!track) {
     return null;
   }
 
   return (
-    <section className="layout-container flex flex-col gap-2 justify-center bg-background z-player border-t border-primary pt-2 pb-4 w-full sticky bottom-0">
+    <section className="layout-container flex flex-col justify-center bg-background z-player border-t border-primary pt-4 pb-6 w-full sticky bottom-0">
       <Button
         className="absolute inset-e-2 border-primary top-0 -translate-y-1/2!"
         aria-label={t('closePlayer')}
@@ -292,14 +343,15 @@ export const Player = () => {
         <X />
       </Button>
 
-      <header className="grid grid-cols-[1fr_auto_1fr] items-center">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center mb-2">
+        <PlayerCoverButton />
         <BaseAlwaysScrollable className="col-start-2 [--base-always-scrollable--content--margin:0_auto]">
-          <h2>{track.name}</h2>
+          <h2 className="text-lg">{track.name}</h2>
         </BaseAlwaysScrollable>
         <PlayerCopyLinkButton />
       </header>
 
-      <PlayerSlider />
+      <PlayerSlider className="mb-4" />
 
       <PlayerControls />
     </section>

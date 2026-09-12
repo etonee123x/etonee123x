@@ -2,8 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import nodeFsPromises from 'node:fs/promises';
 import nodePath from 'node:path';
 
-import { appConfig } from '@/config/app-config';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
+import { DirectoryCleaner, type DirectoryCleanerResult } from './directory-cleaner.service';
 
 interface FileInspectorCacheEntry {
   // File state is persisted alongside inspection so a malformed or mismatched entry never becomes a HIT.
@@ -19,11 +19,13 @@ const createCacheKey = (parameters: { path: string; size: number; mtimeMs: numbe
 };
 
 export class FileInspectorCacheService {
+  private readonly directoryCleaner = new DirectoryCleaner();
+
   private readonly directory: string;
 
-  constructor(parameters: { directory?: string } = {}) {
-    // Tests may isolate entries in a temporary directory; runtime storage belongs to folder-data configuration.
-    this.directory = parameters.directory ?? appConfig.fileInspectorCachePath;
+  constructor(parameters: { directory: string }) {
+    // Tests may isolate entries in a temporary directory; callers supply runtime configuration explicitly.
+    this.directory = parameters.directory;
   }
 
   private getCachePath(parameters: { path: string; size: number; mtimeMs: number }): string {
@@ -58,53 +60,12 @@ export class FileInspectorCacheService {
     const temporaryPath = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     const entry: FileInspectorCacheEntry = parameters;
 
-    // Rename publishes only complete JSON to readers, including concurrent warmup/request processes.
+    // Rename publishes only complete JSON to readers, including concurrent warm-up and request processes.
     await nodeFsPromises.writeFile(temporaryPath, JSON.stringify(entry));
     await nodeFsPromises.rename(temporaryPath, cachePath);
   }
 
-  async clear(): Promise<void> {
-    await nodeFsPromises.rm(this.directory, { recursive: true, force: true });
-  }
-
-  async garbageCollect(): Promise<number> {
-    let cacheEntries: Array<string>;
-
-    try {
-      cacheEntries = await nodeFsPromises.readdir(this.directory);
-    } catch (error: unknown) {
-      if (this.isMissingDirectoryError(error)) {
-        return 0;
-      }
-
-      throw error;
-    }
-
-    let removed = 0;
-
-    // Cache is derived data: entries for deleted or modified files are no longer reusable.
-    for (const cacheEntry of cacheEntries) {
-      const cachePath = nodePath.join(this.directory, cacheEntry);
-
-      if (!cacheEntry.endsWith('.json')) {
-        continue;
-      }
-
-      try {
-        const entry = JSON.parse(await nodeFsPromises.readFile(cachePath, 'utf8')) as FileInspectorCacheEntry;
-        const stat = await nodeFsPromises.stat(entry.path);
-
-        if (stat.size === entry.size && stat.mtimeMs === entry.mtimeMs) {
-          continue;
-        }
-      } catch {
-        // Missing files and unreadable cache entries are stale.
-      }
-
-      await nodeFsPromises.rm(cachePath, { force: true });
-      removed += 1;
-    }
-
-    return removed;
+  async clear(): Promise<DirectoryCleanerResult> {
+    return this.directoryCleaner.clear(this.directory);
   }
 }

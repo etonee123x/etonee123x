@@ -31,7 +31,11 @@ export const createApp = () => {
     .use(Express.json({ limit: appConfig.jsonBodyLimit }));
 
   if (appConfig.isDevelopment) {
-    app.use('/content', Express.static(appConfig.contentPath)).use('/uploads', Express.static(appConfig.uploadsPath));
+    // Development serves extracted covers beside existing public file roots.
+    app
+      .use('/content', Express.static(appConfig.contentPath))
+      .use('/uploads', Express.static(appConfig.uploadsPath))
+      .use('/covers', Express.static(appConfig.audioCoversPath));
   }
 
   return app //

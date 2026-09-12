@@ -9,6 +9,12 @@ class AppConfig {
     return value;
   }
 
+  private static getOptionalEnvironmentVariable(name: string): string | undefined {
+    const value = process.env[name]?.trim();
+
+    return value || undefined;
+  }
+
   private static getEnvironmentVariablePositiveNumber(name: string): number {
     const numberValue = Number(this.getRequiredEnvironmentVariable(name));
 
@@ -54,9 +60,13 @@ class AppConfig {
   */
   readonly uploadsPath: string;
   /**
-  Path to folder data cache files.
+  Path to audio cover files extracted from embedded audio metadata.
   */
-  readonly fileInspectorCachePath: string;
+  readonly audioCoversPath: string;
+  /**
+  Optional path to file inspector cache files; without it, caching is disabled.
+  */
+  readonly fileInspectorCachePath: string | undefined;
   /**
   Maximum JSON request body size.
   */
@@ -87,7 +97,7 @@ class AppConfig {
   readonly isDevelopment: boolean;
 
   constructor() {
-    const nodeEnvironment = process.env.NODE_ENV || 'production';
+    const nodeEnvironment = AppConfig.getOptionalEnvironmentVariable('NODE_ENV') ?? 'production';
     const corsOrigin = AppConfig.getRequiredEnvironmentVariable('CORS_ORIGIN');
 
     this.port = AppConfig.getPortFromEnvironment();
@@ -98,7 +108,8 @@ class AppConfig {
     this.databasePath = AppConfig.getRequiredEnvironmentVariable('DATABASE_PATH');
     this.contentPath = AppConfig.getRequiredEnvironmentVariable('CONTENT_PATH');
     this.uploadsPath = AppConfig.getRequiredEnvironmentVariable('UPLOADS_PATH');
-    this.fileInspectorCachePath = AppConfig.getRequiredEnvironmentVariable('FILE_INSPECTOR_CACHE_PATH');
+    this.audioCoversPath = AppConfig.getRequiredEnvironmentVariable('AUDIO_COVERS_PATH');
+    this.fileInspectorCachePath = AppConfig.getOptionalEnvironmentVariable('FILE_INSPECTOR_CACHE_PATH');
     this.jsonBodyLimit = AppConfig.getRequiredEnvironmentVariable('JSON_BODY_LIMIT');
     this.requestTimeoutMs = AppConfig.getEnvironmentVariablePositiveNumber('REQUEST_TIMEOUT_MS');
     this.headersTimeoutMs = AppConfig.getEnvironmentVariablePositiveNumber('HEADERS_TIMEOUT_MS');

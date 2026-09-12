@@ -104,6 +104,8 @@ multipart upload
 | `DATABASE_PATH` | Путь к runtime-данным | `../../infra/database` |
 | `CONTENT_PATH` | Каталог с медиа-контентом | `../../infra/content` |
 | `UPLOADS_PATH` | Каталог загруженных пользователем файлов | `../../infra/uploads` |
+| `AUDIO_COVERS_PATH` | Каталог с обложками, извлечёнными из аудиофайлов | `../../infra/covers` |
+| `FILE_INSPECTOR_CACHE_PATH` | Необязательный каталог кэша результатов file inspector; без переменной кэш отключён | `../../infra/caches/file-inspector` |
 | `JSON_BODY_LIMIT` | Лимит размера JSON тела запроса | `1mb` |
 | `CORS_ORIGIN` | Разрешённые origin для CORS, список через запятую | `http://localhost:3000` |
 | `REQUEST_TIMEOUT_MS` | Максимальное время обработки запроса в миллисекундах | `30000` |
@@ -120,16 +122,23 @@ multipart upload
 
 ## Команды
 
-```sh
-npm run dev
-npm run start
-npm run test
-npm run test:watch
-npm run typecheck
-npm run lint
-npm run lint:fix
-npm run generate:openapi
-```
+| Команда | Что делает |
+| --- | --- |
+| `npm run dev` | Запускает backend в development-режиме с watch-перезапуском. |
+| `npm run dev:generateAuthUrl` | Генерирует auth URL для development-доступа. |
+| `npm run start` | Запускает backend без watch-режима. |
+| `npm run test` | Запускает все Vitest-тесты один раз. |
+| `npm run test:watch` | Запускает Vitest в watch-режиме. |
+| `npm run test:coverage` | Запускает тесты и собирает coverage-отчёт. |
+| `npm run typecheck` | Проверяет TypeScript без генерации файлов. |
+| `npm run lint` | Проверяет backend через ESLint. |
+| `npm run lint:fix` | Запускает ESLint с автоматическими исправлениями. |
+| `npm run script:audio-covers:clear` | Удаляет извлечённые из аудио обложки. |
+| `npm run script:file-inspector-cache:clear` | Удаляет persistent-кэш результатов file inspector. |
+| `npm run script:file-inspector-cache:warm-up-content` | Прогревает кэш file inspector для файлов из `CONTENT_PATH`. |
+| `npm run script:generated-artifacts:clear` | Удаляет сгенерированные derived-файлы: кэш инспектора и аудиообложки. |
+| `npm run script:clearUnusedUploads` | Удаляет upload-файлы, которые больше не используются постами. |
+| `npm run generate:openapi` | Генерирует TypeScript-типы из OpenAPI-контракта. |
 
 ## OpenAPI
 

@@ -106,6 +106,11 @@ export interface components {
                 artists: string[];
                 bitrate: number | null;
                 duration: number;
+                cover: {
+                    src: string;
+                    width: number;
+                    height: number;
+                } | null;
             };
         };
         StoredFileImage: components["schemas"]["StoredFileBase"] & {

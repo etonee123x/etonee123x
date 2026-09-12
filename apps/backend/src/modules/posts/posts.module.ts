@@ -27,7 +27,8 @@ export class PostsModule extends Module {
 
     const filesStorage = new FsFilesStorage({ filesLocation });
 
-    const audioFileInspector = new AudioFileInspector({ filesStorage });
+    // Upload inspection does not persist extracted covers yet; folder-data owns cover generation for now.
+    const audioFileInspector = new AudioFileInspector({ filesStorage, audioCoverService: null });
     const videoFileInspector = new VideoFileInspector({ filesStorage });
     const imageFileInspector = new ImageFileInspector({ filesStorage });
     const unknownFileInspector = new UnknownFileInspector({ filesStorage });
@@ -42,18 +43,20 @@ export class PostsModule extends Module {
       filesStorage,
     });
 
-    // FilesService requires every dependency at construction, even though posts currently use only non-cached operations.
-    const fileInspectorCache = new FileInspectorCacheService();
+    // Cache service exists only when persistent cache storage is configured.
+    const fileInspectorCacheService = appConfig.fileInspectorCachePath
+      ? new FileInspectorCacheService({ directory: appConfig.fileInspectorCachePath })
+      : null;
 
     const filesService = new FilesService({
       filesStorage,
       fileInspector,
-      fileInspectorCache,
+      fileInspectorCacheService,
     });
 
     const postsService = new PostsService({ postsRepo, filesService });
 
-    const postsController = new PostsController(postsService);
+    const postsController = new PostsController({ postsService });
 
     super({ controller: postsController });
   }

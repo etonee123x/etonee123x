@@ -1,4 +1,4 @@
-import { ItemHeader } from '@/shared/ui/ds/item';
+import { CardHeader } from '@/shared/ui/ds/card';
 import { useFormatter, useNow } from 'next-intl';
 import type { components } from '@/shared/api/openapi';
 import { BaseAlwaysScrollable } from '@/shared/ui/base-always-scrollable';
@@ -28,12 +28,13 @@ export const ExplorerElementHeader = ({
   name: Element['name'];
   createdAt: Element['_meta']['createdAt'];
 }) => {
+  // Shared card header keeps file and folder titles aligned.
   return (
-    <ItemHeader className="min-w-0">
+    <CardHeader className="flex min-w-0 items-center justify-between gap-2">
       <BaseAlwaysScrollable>
-        <header className="text-lg">{name}</header>
+        <h2 className="text-lg">{name}</h2>
       </BaseAlwaysScrollable>
       <ExplorerElementTime createdAt={createdAt} />
-    </ItemHeader>
+    </CardHeader>
   );
 };

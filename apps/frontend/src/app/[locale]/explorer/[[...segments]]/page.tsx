@@ -1,5 +1,6 @@
 import {
   Breadcrumb,
+  BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
@@ -10,7 +11,6 @@ import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { QueryClient } from '@tanstack/react-query';
 import { type components } from '@/shared/api/openapi';
-import { ItemGroup } from '@/shared/ui/ds/item';
 import { throwError } from '@/shared/utils/throw-error';
 import { SendFolderDataToPlayer } from '@/widgets/player';
 import { SendFolderDataToGallery } from '@/widgets/gallery';
@@ -161,7 +161,7 @@ const pathDirectoryToNavigationItems = (
         return [
           ...segments,
           {
-            text: segment,
+            text: decodeURIComponent(segment),
             href: [segments.at(-1)?.href, segment].join('/'),
           },
         ];
@@ -200,21 +200,26 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
       <SendFolderDataToGallery folderData={folderData} lastNavigationItemHref={lastNavigationItem.href} />
       <h1 className="h1 mb-4">{t('content')}</h1>
 
-      <Breadcrumb className="mb-4 sticky top-header-height">
+      <Breadcrumb className="mb-4 z-explorer-navbar sticky top-header-height">
         <BreadcrumbList>
           {breadcrumbLinks.map((link, index) => {
             return (
               <Fragment key={index}>
-                <BreadcrumbLink render={<Link href={link.href} />}>{link.text}</BreadcrumbLink>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href={link.href} />}>{link.text}</BreadcrumbLink>
+                </BreadcrumbItem>
                 <BreadcrumbSeparator />
               </Fragment>
             );
           })}
-          <BreadcrumbPage className="text-primary">{lastNavigationItem.text}</BreadcrumbPage>
+          <BreadcrumbItem>
+            <BreadcrumbPage className="text-primary">{lastNavigationItem.text}</BreadcrumbPage>
+          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <ItemGroup className="gap-4! mb-4">
+      {/* Explorer entries use cards; list container provides shared spacing only. */}
+      <div role="list" className="mb-4 flex w-full flex-col gap-4">
         <nav className="contents">
           {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
           {folderData.folders.map((folder) => {
@@ -224,7 +229,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
         {folderData.files.map((file) => {
           return <ExplorerElementFile key={file.name} element={file} href={folderDataItemToHref(file)} />;
         })}
-      </ItemGroup>
+      </div>
     </section>
   );
 }

@@ -1,49 +1,12 @@
 import { Module } from '@/shared/module';
 import { FolderDataController } from './controllers/folder-data.controller';
 import { FolderDataService } from './services/folder-data.service';
-import { FilesService } from '@/infrastructure/files/services/files.service';
-import { FsFilesStorage } from '@/infrastructure/files/storages/fs-files-storage';
-import { FileInspector } from '@/infrastructure/files/inspectors/file-inspector';
-import { AudioFileInspector } from '@/infrastructure/files/inspectors/audio.file-inspector';
-import { ImageFileInspector } from '@/infrastructure/files/inspectors/image.file-inspector';
-import { VideoFileInspector } from '@/infrastructure/files/inspectors/video.file-inspector';
-import { UnknownFileInspector } from '@/infrastructure/files/inspectors/unknown.file-inspector';
-import { FilesLocation } from '@/infrastructure/files/locations/files-location';
-import { FileInspectorCacheService } from '@/infrastructure/files/services/file-inspector-cache.service';
-import { appConfig } from '@/config/app-config';
+import { createFolderDataFiles } from './folder-data-files.factory';
 
 export class FolderDataModule extends Module {
   constructor() {
-    const contentPath = appConfig.contentPath;
-
-    const filesLocation = new FilesLocation({ fs: contentPath, src: '/content' });
-
-    const filesStorage = new FsFilesStorage({ filesLocation });
-
-    // Keep each dependency named so folder-data composition remains inspectable and replaceable.
-    const audioFileInspector = new AudioFileInspector({ filesStorage });
-    const imageFileInspector = new ImageFileInspector({ filesStorage });
-    const videoFileInspector = new VideoFileInspector({ filesStorage });
-    const unknownFileInspector = new UnknownFileInspector({ filesStorage });
-
-    const fileInspector = new FileInspector({
-      fileInspectors: {
-        audioFileInspector,
-        imageFileInspector,
-        videoFileInspector,
-        unknownFileInspector,
-      },
-      filesStorage,
-    });
-
-    // Folder responses obtain all file metadata through this cache-aware FilesService.
-    const fileInspectorCache = new FileInspectorCacheService();
-
-    const filesService = new FilesService({
-      filesStorage,
-      fileInspector,
-      fileInspectorCache,
-    });
+    // Shared folder-data file graph keeps HTTP module and scripts on the same inspector setup.
+    const { filesLocation, filesService } = createFolderDataFiles();
 
     const folderDataService = new FolderDataService({ filesService, filesLocation });
 

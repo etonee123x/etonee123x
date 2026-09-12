@@ -15,7 +15,7 @@ const buildApp = (postsService: unknown) => {
   app.use(cookieParser());
   app.use(Express.json());
 
-  const controller = new PostsController(postsService as never);
+  const controller = new PostsController({ postsService: postsService as never });
   app.use(controller.router);
   app.use(errorHandler);
 

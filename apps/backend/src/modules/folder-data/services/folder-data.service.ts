@@ -9,6 +9,15 @@ import { resolveSafePath } from '@/utils/safe-path';
 
 const PROHIBITED_ELEMENTS_NAMES = new Set(['.git']);
 
+const encodeUrlPath = (path: string) => {
+  return path
+    .split('/')
+    .map((segment) => {
+      return encodeURIComponent(segment);
+    })
+    .join('/');
+};
+
 const getStat = async (parameters: { path: string }) => {
   try {
     await nodeFsPromises.access(parameters.path);
@@ -144,10 +153,27 @@ export class FolderDataService {
     })();
 
     return {
-      folders,
-      files,
-      file,
-      pathDirectory,
+      folders: folders.map((folder) => {
+        return {
+          ...folder,
+          path: encodeUrlPath(folder.path),
+        };
+      }),
+      files: files.map((storedFile) => {
+        return {
+          ...storedFile,
+          path: encodeUrlPath(storedFile.path),
+          src: encodeUrlPath(storedFile.src),
+        };
+      }),
+      file: file
+        ? {
+            ...file,
+            path: encodeUrlPath(file.path),
+            src: encodeUrlPath(file.src),
+          }
+        : null,
+      pathDirectory: encodeUrlPath(pathDirectory),
     };
   }
 }

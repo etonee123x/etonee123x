@@ -18,7 +18,7 @@ export const Footer = () => {
   ];
 
   return (
-    <footer className="border-t border-primary">
+    <footer className="z-footer border-t border-primary">
       <address className="layout-container py-4 flex gap-4 items-center italic">
         {links.map((link, index) => {
           return (

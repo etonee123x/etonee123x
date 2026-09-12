@@ -31,20 +31,20 @@ const ExplorerElementFileUnknown = dynamic(() => {
 
 export const ExplorerElementFile = ({
   element,
-  ...props
-}: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemFile'] }) => {
+  href,
+}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemFile'] }) => {
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {
-      return <ExplorerElementFileAudio element={element} {...props} />;
+      return <ExplorerElementFileAudio element={element} href={href} />;
     }
     case FILE_TYPES.IMAGE: {
-      return <ExplorerElementFileImage element={element} {...props} />;
+      return <ExplorerElementFileImage element={element} href={href} />;
     }
     case FILE_TYPES.VIDEO: {
-      return <ExplorerElementFileVideo element={element} {...props} />;
+      return <ExplorerElementFileVideo element={element} href={href} />;
     }
     case FILE_TYPES.UNKNOWN: {
-      return <ExplorerElementFileUnknown element={element} {...props} />;
+      return <ExplorerElementFileUnknown element={element} href={href} />;
     }
     default: {
       throw checkExhaustive(element);

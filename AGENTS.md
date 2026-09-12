@@ -54,6 +54,7 @@ Do not run ESLint from the repository root.
 After `lint:fix`:
 - Review the changes made by ESLint.
 - If ESLint issues remain, fix only the remaining issues manually.
+- Fix ESLint errors and warnings, but never remove, rewrite, or hide `TODO` comments only to satisfy lint; report `TODO` warnings as existing lint debt unless the user explicitly asks to change them.
 - Run `npm run lint:fix` again after manual fixes.
 - The task is not complete until ESLint passes.
 

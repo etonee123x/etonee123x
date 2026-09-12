@@ -10,6 +10,7 @@ import { useSinglePlayback } from '@/shared/hooks/use-single-playback';
 import { localStorageVolume, DEFAULT_VOLUME } from './local-storage-volume';
 import { isClient } from '@/shared/utils/target';
 import { useEventListener } from '@reactuses/core';
+import { isNil } from '@/shared/utils/is-nil';
 
 type Track = NonNullable<NonNullable<ContextType<typeof AudioPlayerContext>>['track']>;
 
@@ -262,6 +263,14 @@ export const AudioPlayerProviderClient = ({
         title: track.name,
         artist: track.metadata.artists.join(', '),
         album: track.metadata.album ?? undefined,
+        artwork: isNil(track.metadata.cover)
+          ? undefined
+          : [
+              {
+                src: track.metadata.cover.src,
+                sizes: [track.metadata.cover.width, track.metadata.cover.height].join('x'),
+              },
+            ],
       });
 
       navigator.mediaSession.setActionHandler('nexttrack', () => {

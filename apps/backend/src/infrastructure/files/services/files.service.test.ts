@@ -8,6 +8,31 @@ import { FileInspectorCacheService } from '@/infrastructure/files/services/file-
 import { FilesService } from '@/infrastructure/files/services/files.service';
 
 describe('FilesService', () => {
+  it('inspects every request when the cache has no directory', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'file-inspection-'));
+    const filePath = path.join(directory, 'a.bin');
+    await fs.writeFile(filePath, 'first');
+
+    const fileInspector = {
+      inspect: vi.fn().mockResolvedValue({ fileType: FILE_TYPES.UNKNOWN }),
+    };
+    const service = new FilesService({
+      filesStorage: { getPath: vi.fn().mockReturnValue(filePath) } as never,
+      fileInspector: fileInspector as never,
+      // No cache service must inspect every request.
+      fileInspectorCacheService: null,
+    });
+
+    try {
+      await service.getFileInspection({ key: 'a.bin' });
+      await service.getFileInspection({ key: 'a.bin' });
+
+      expect(fileInspector.inspect).toHaveBeenCalledTimes(2);
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('reuses disk inspection cache until file state changes', async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'file-inspection-'));
     const filePath = path.join(directory, 'a.bin');
@@ -26,7 +51,7 @@ describe('FilesService', () => {
     const service = new FilesService({
       filesStorage: { getPath: vi.fn().mockReturnValue(filePath) } as never,
       fileInspector: fileInspector as never,
-      fileInspectorCache: new FileInspectorCacheService({ directory: cacheDirectory }),
+      fileInspectorCacheService: new FileInspectorCacheService({ directory: cacheDirectory }),
     });
 
     try {
@@ -72,8 +97,8 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     const result = await filesService.upload({ key: 'a.bin', buffer });
@@ -108,8 +133,8 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     const storedFile = await filesService.delete({ key: 'a.bin' });
@@ -137,11 +162,57 @@ describe('FilesService', () => {
     const filesService = new FilesService({
       filesStorage: filesStorage,
       fileInspector: fileInspector as never,
-      // Explicit dependency preserves the production constructor contract in non-cache tests.
-      fileInspectorCache: new FileInspectorCacheService(),
+      // Explicitly disable caching for this non-cache operation.
+      fileInspectorCacheService: null,
     });
 
     await expect(filesService.exists({ key: 'missing.bin' })).resolves.toBe(false);
     expect(filesStorage.exists).toHaveBeenCalledWith({ key: 'missing.bin' });
+  });
+
+  it('warms up content inspection and groups successful files by containing directory', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'content-warm-up-'));
+    const musicDirectory = path.join(directory, 'music', 'album');
+    const imagesDirectory = path.join(directory, 'images');
+    const gitDirectory = path.join(directory, '.git');
+
+    await fs.mkdir(musicDirectory, { recursive: true });
+    await fs.mkdir(imagesDirectory);
+    await fs.mkdir(gitDirectory);
+    await fs.writeFile(path.join(directory, 'root.txt'), 'root');
+    await fs.writeFile(path.join(musicDirectory, 'track.mp3'), 'track');
+    await fs.writeFile(path.join(imagesDirectory, 'cover.png'), 'cover');
+    await fs.writeFile(path.join(gitDirectory, 'ignored.txt'), 'ignored');
+
+    const fileInspector = { inspect: vi.fn().mockResolvedValue({ fileType: FILE_TYPES.UNKNOWN }) };
+    const service = new FilesService({
+      filesStorage: {
+        getPath: ({ key }: { key: string }) => {
+          return path.join(directory, key);
+        },
+      } as never,
+      fileInspector: fileInspector as never,
+      // Content warm-up can validate inspection without writing a persistent cache.
+      fileInspectorCacheService: null,
+    });
+
+    try {
+      const result = await service.warmUpContent({ directory });
+
+      expect(result).toEqual({
+        filesCount: 3,
+        directories: [
+          { directory: '.', filesCount: 1 },
+          { directory: 'images', filesCount: 1 },
+          { directory: 'music/album', filesCount: 1 },
+        ],
+      });
+      expect(fileInspector.inspect).toHaveBeenCalledTimes(3);
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'root.txt' });
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'music/album/track.mp3' });
+      expect(fileInspector.inspect).toHaveBeenCalledWith({ key: 'images/cover.png' });
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true });
+    }
   });
 });

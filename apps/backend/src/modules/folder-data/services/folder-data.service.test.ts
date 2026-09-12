@@ -59,8 +59,9 @@ describe('FolderDataService', () => {
     await fs.mkdir(path.join(albumDirectory, '.git'), { recursive: true });
     await fs.writeFile(path.join(albumDirectory, 'song.mp3'), Buffer.from('song'));
 
+    // FolderDataService consumes cache-aware inspection rather than raw inspector output.
     const filesService = {
-      getStoredFile: vi.fn(async (parameters: { key: string }) => {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
         return buildStoredFile(path.basename(parameters.key));
       }),
     };
@@ -84,9 +85,35 @@ describe('FolderDataService', () => {
         return file.name;
       }),
     ).toEqual(['song.mp3']);
-    expect(filesService.getStoredFile).toHaveBeenCalledWith({
+    expect(filesService.getFileInspection).toHaveBeenCalledWith({
       key: 'album/song.mp3',
     });
+  });
+
+  it('encodes URL paths while preserving filesystem inspection keys', async () => {
+    const rootDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'folder-data-'));
+    temporaryDirectories.push(rootDirectory);
+
+    const folderName = 'Дни Недели';
+    const fileName = 'image.png';
+    await fs.mkdir(path.join(rootDirectory, folderName), { recursive: true });
+    await fs.writeFile(path.join(rootDirectory, folderName, fileName), Buffer.from('image'));
+
+    const filesService = {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
+        return buildStoredFile(path.basename(parameters.key));
+      }),
+    };
+
+    const service = new FolderDataService({
+      filesLocation: new FilesLocation({ fs: rootDirectory, src: '/content' }),
+      filesService: filesService as never,
+    });
+
+    const result = await service.getFolderData({ pathAsRelativeUrl: '/' });
+
+    expect(result.folders[0]?.path).toBe('/%D0%94%D0%BD%D0%B8%20%D0%9D%D0%B5%D0%B4%D0%B5%D0%BB%D0%B8');
+    expect(filesService.getFileInspection).not.toHaveBeenCalled();
   });
 
   it('returns file info when requested path is a file', async () => {
@@ -97,8 +124,9 @@ describe('FolderDataService', () => {
     await fs.mkdir(albumDirectory, { recursive: true });
     await fs.writeFile(path.join(albumDirectory, 'song.mp3'), Buffer.from('song'));
 
+    // Keep mock aligned with FilesService's public inspection method.
     const filesService = {
-      getStoredFile: vi.fn(async (parameters: { key: string }) => {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
         return buildStoredFile(path.basename(parameters.key));
       }),
     };
@@ -113,7 +141,7 @@ describe('FolderDataService', () => {
     expect(result.file).not.toBeNull();
     expect(result.file?.path).toBe('album/song.mp3');
     expect(result.pathDirectory).toBe('album');
-    expect(filesService.getStoredFile).toHaveBeenNthCalledWith(1, { key: 'album/song.mp3' });
+    expect(filesService.getFileInspection).toHaveBeenNthCalledWith(1, { key: 'album/song.mp3' });
   });
 
   it('rejects path traversal attempts with 400', async () => {

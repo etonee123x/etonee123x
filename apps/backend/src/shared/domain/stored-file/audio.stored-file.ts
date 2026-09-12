@@ -4,6 +4,11 @@ import type { StoredFileBase } from './base.stored-file';
 export interface StoredFileAudio extends StoredFileBase {
   fileType: (typeof FILE_TYPES)['AUDIO'];
   metadata: {
+    cover: {
+      src: string;
+      width: number;
+      height: number;
+    } | null;
     duration: number;
     bitrate: number | null;
     album: string | null;

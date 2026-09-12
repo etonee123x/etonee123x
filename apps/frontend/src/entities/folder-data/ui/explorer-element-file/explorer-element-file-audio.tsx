@@ -1,4 +1,3 @@
-import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/shared/ui/ds/item';
 import { Separator } from '@/shared/ui/ds/separator';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
@@ -8,11 +7,14 @@ import { useTranslations } from 'next-intl';
 import { type ComponentProps } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
+import { isNil } from '@/shared/utils/is-nil';
+import { Card, CardContent } from '@/shared/ui/ds/card';
+import Image from 'next/image';
 
 export const ExplorerElementFileAudio = ({
   element,
-  ...props
-}: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemAudio'] }) => {
+  href,
+}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemAudio'] }) => {
   const t = useTranslations('ExplorerElementAudio');
 
   const metadataItems = [
@@ -70,30 +72,51 @@ export const ExplorerElementFileAudio = ({
 
   return (
     <article className="contents">
-      <Item className="border-primary relative overflow-hidden" render={<Link {...props} scroll={false} />}>
+      <Card
+        size="sm"
+        className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+      >
+        {/* Full-card link stays behind content so controls can opt into pointer events. */}
+        <Link
+          href={href}
+          scroll={false}
+          aria-label={element.name}
+          className="pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none"
+        />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
-        <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
-        <Separator />
-        <ItemContent className="w-full">
-          <ItemGroup className="flex-row overflow-x-auto">
-            {metadataItems.map((metadataItem) => {
-              return (
-                <Item size="xs" className="flex-nowrap" key={metadataItem.key}>
-                  <ItemMedia className="self-center! pb-0.5">
-                    <metadataItem.Icon className="size-6" />
-                  </ItemMedia>
-                  <ItemContent className="text-nowrap">
-                    <ItemTitle className="text-muted-foreground font-normal">{metadataItem.title}</ItemTitle>
-                    <ItemDescription className="text-secondary-foreground text-sm!">
-                      {metadataItem.value}
-                    </ItemDescription>
-                  </ItemContent>
-                </Item>
-              );
-            })}
-          </ItemGroup>
-        </ItemContent>
-      </Item>
+
+        <div className="grid grid-cols-1 @sm/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
+          {!isNil(element.metadata.cover) && (
+            <Image
+              data-cover
+              className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
+              src={element.metadata.cover.src}
+              alt={t('cover', { trackName: element.name })}
+              width={element.metadata.cover.width}
+              height={element.metadata.cover.height}
+            />
+          )}
+          <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+          {/* Separator aligns with the card's padded header and content. */}
+          <Separator className="m-(--card-spacing) w-auto!" />
+          <CardContent>
+            <dl className="flex flex-wrap gap-x-8 gap-y-2">
+              {metadataItems.map((metadataItem) => {
+                return (
+                  <div
+                    key={metadataItem.key}
+                    className="grid gap-x-2 grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center"
+                  >
+                    <metadataItem.Icon className="row-span-2 size-6 shrink-0" />
+                    <dt className="text-muted-foreground font-normal">{metadataItem.title}</dt>
+                    <dd className="text-secondary-foreground">{metadataItem.value}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </CardContent>
+        </div>
+      </Card>
     </article>
   );
 };

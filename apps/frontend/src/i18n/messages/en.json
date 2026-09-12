@@ -89,6 +89,7 @@
     "couldNotSendPost": "Failed to send post"
   },
   "ExplorerElementAudio": {
+    "cover": "Cover {trackName}",
     "duration": "Duration",
     "artists": "Artist(-s)",
     "album": "Album",
@@ -98,6 +99,8 @@
   "ThePlayer": {
     "copied": "Copied!",
     "copyLink": "Copy link",
+    "cover": "Cover {trackName}",
+    "openCover": "Open cover",
     "trackProgress": "Track progress",
     "volume": "Volume",
     "previousTrack": "Previous track",
