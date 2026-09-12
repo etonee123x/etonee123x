@@ -28,9 +28,20 @@ allOf:
             nullable: true
           duration:
             type: number
-          coverSrc:
-            type: string
+          cover:
+            type: object
             nullable: true
+            properties:
+              src:
+                type: string
+              width:
+                type: number
+              height:
+                type: number
+            required:
+              - src
+              - width
+              - height
         required:
           - bitrate
           - duration
@@ -38,7 +49,7 @@ allOf:
           - artists
           - bpm
           - year
-          - coverSrc
+          - cover
     required:
       - metadata
       - fileType

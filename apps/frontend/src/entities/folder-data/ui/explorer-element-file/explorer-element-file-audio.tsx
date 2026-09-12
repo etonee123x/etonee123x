@@ -9,6 +9,7 @@ import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
 import { Card, CardContent } from '@/shared/ui/ds/card';
+import Image from 'next/image';
 
 export const ExplorerElementFileAudio = ({
   element,
@@ -85,13 +86,14 @@ export const ExplorerElementFileAudio = ({
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
         <div className="grid grid-cols-1 @sm/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
-          {!isNil(element.metadata.coverSrc) && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+          {!isNil(element.metadata.cover) && (
+            <Image
               data-cover
               className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
-              src={element.metadata.coverSrc}
-              alt="Cover"
+              src={element.metadata.cover.src}
+              alt={t('cover', { trackName: element.name })}
+              width={element.metadata.cover.width}
+              height={element.metadata.cover.height}
             />
           )}
           <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />

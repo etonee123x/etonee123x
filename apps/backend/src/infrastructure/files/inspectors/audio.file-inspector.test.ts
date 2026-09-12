@@ -56,7 +56,7 @@ describe('AudioFileInspector', () => {
       src: '/content/audio.mp3',
       fileType: FILE_TYPES.AUDIO,
       metadata: {
-        coverSrc: null,
+        cover: null,
         duration: 2500,
         bitrate: 320,
         album: 'Album',
@@ -94,7 +94,7 @@ describe('AudioFileInspector', () => {
       src: '/content/audio.mp3',
       fileType: FILE_TYPES.AUDIO,
       metadata: {
-        coverSrc: null,
+        cover: null,
         duration: 0,
         bitrate: null,
         album: null,
@@ -116,7 +116,7 @@ describe('AudioFileInspector', () => {
     } as never);
 
     const audioCoverService = {
-      save: vi.fn().mockResolvedValue('/covers/hash.jpg'),
+      save: vi.fn().mockResolvedValue({ src: '/covers/hash.jpg', width: 100, height: 80 }),
     };
     const inspector = new AudioFileInspector({
       filesStorage: buildFilesStorage() as never,
@@ -134,6 +134,10 @@ describe('AudioFileInspector', () => {
 
     // Inspector passes exact embedded bytes so the service can hash identical album art once.
     expect(audioCoverService.save).toHaveBeenCalledWith({ buffer: coverBuffer, format: 'image/jpeg' });
-    expect(result.metadata.coverSrc).toBe('/covers/hash.jpg');
+    expect(result.metadata.cover).toEqual({
+      src: '/covers/hash.jpg',
+      width: 100,
+      height: 80,
+    });
   });
 });

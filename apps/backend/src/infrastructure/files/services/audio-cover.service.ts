@@ -15,7 +15,9 @@ const COVER_WEBP_QUALITY = 80;
 const COVER_SRC_BASE = '/covers';
 
 export class AudioCoverService {
-  private static async optimize(buffer: Buffer): Promise<{ buffer: Buffer; extension: string }> {
+  private static async optimize(
+    buffer: Buffer,
+  ): Promise<{ buffer: Buffer; extension: string; width: number; height: number }> {
     try {
       // Album art is rendered as a small square preview, so bounded WebP avoids storing huge embedded originals.
       const optimizedBuffer = await sharp(buffer)
@@ -24,10 +26,12 @@ export class AudioCoverService {
         .webp({ quality: COVER_WEBP_QUALITY })
         .toBuffer();
 
-      return { buffer: optimizedBuffer, extension: 'webp' };
+      const metadata = await sharp(optimizedBuffer).metadata();
+
+      return { buffer: optimizedBuffer, extension: 'webp', width: metadata.width, height: metadata.height };
     } catch {
       // Bad or exotic embedded pictures should not break audio inspection; store original bytes instead.
-      return { buffer, extension: 'bin' };
+      return { buffer, extension: 'bin', width: 0, height: 0 };
     }
   }
 
@@ -61,7 +65,7 @@ export class AudioCoverService {
     this.directory = parameters.directory;
   }
 
-  async save(parameters: { buffer: Buffer; format: string }): Promise<string> {
+  async save(parameters: { buffer: Buffer; format: string }): Promise<{ src: string; width: number; height: number }> {
     const optimizedCover = await AudioCoverService.optimize(parameters.buffer);
     const extension =
       optimizedCover.extension === 'bin' ? AudioCoverService.getExtension(parameters.format) : optimizedCover.extension;
@@ -80,7 +84,11 @@ export class AudioCoverService {
       }
     }
 
-    return nodePath.posix.join(COVER_SRC_BASE, fileName);
+    return {
+      src: nodePath.posix.join(COVER_SRC_BASE, fileName),
+      width: optimizedCover.width,
+      height: optimizedCover.height,
+    };
   }
 
   async clear(): Promise<DirectoryCleanerResult> {

@@ -15,7 +15,7 @@ export class AudioFileInspector extends FileInspectorBase {
     this.audioCoverService = parameters.audioCoverService;
   }
 
-  private async getCoverSrc(pictures: Array<IPicture>): Promise<string | null> {
+  private async getCover(pictures: Array<IPicture>): Promise<{ src: string; width: number; height: number } | null> {
     const firstPicture = pictures[0];
     if (!(firstPicture && this.audioCoverService)) {
       return null;
@@ -33,10 +33,11 @@ export class AudioFileInspector extends FileInspectorBase {
     const base = await super.inspect({ key: parameters.key });
     const buffer = await parameters.storedFileSource.getBuffer();
     const audioMetadata = await parseBuffer(buffer);
+    const cover = await this.getCover(audioMetadata.common.picture ?? []);
 
     const specific = {
       metadata: {
-        coverSrc: await this.getCoverSrc(audioMetadata.common.picture ?? []),
+        cover,
         duration: (audioMetadata.format.duration ?? 0) * 1000,
         bitrate: audioMetadata.format.bitrate ? audioMetadata.format.bitrate / 1000 : null,
         album: audioMetadata.common.album ?? null,

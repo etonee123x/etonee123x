@@ -22,8 +22,12 @@ describe('AudioCoverService', () => {
       const secondSource = await service.save({ buffer: coverBuffer, format: 'image/jpeg' });
 
       // Same bytes produce same public source and do not require duplicate cover files.
-      expect(firstSource).toBe(`/covers/${expectedHash}.jpg`);
-      expect(secondSource).toBe(firstSource);
+      expect(firstSource).toEqual({
+        src: `/covers/${expectedHash}.jpg`,
+        width: 0,
+        height: 0,
+      });
+      expect(secondSource).toEqual(firstSource);
       await expect(nodeFsPromises.readFile(expectedPath)).resolves.toEqual(existingFileBuffer);
     } finally {
       await nodeFsPromises.rm(directory, { recursive: true, force: true });
@@ -46,12 +50,14 @@ describe('AudioCoverService', () => {
 
     try {
       const source = await service.save({ buffer: coverBuffer, format: 'image/png' });
-      const fileName = nodePath.basename(source);
+      const fileName = nodePath.basename(source.src);
       const storedBuffer = await nodeFsPromises.readFile(nodePath.join(directory, fileName));
       const metadata = await sharp(storedBuffer).metadata();
 
       // Stored covers stay browser-friendly and small enough for repeated audio cards.
-      expect(source).toMatch(/^\/covers\/[a-f0-9]{64}\.webp$/);
+      expect(source.src).toMatch(/^\/covers\/[a-f0-9]{64}\.webp$/);
+      expect(source.width).toBe(512);
+      expect(source.height).toBe(398);
       expect(metadata.format).toBe('webp');
       expect(Math.max(metadata.width, metadata.height)).toBeLessThanOrEqual(512);
       expect(storedBuffer.length).toBeLessThan(coverBuffer.length);

@@ -263,11 +263,12 @@ export const AudioPlayerProviderClient = ({
         title: track.name,
         artist: track.metadata.artists.join(', '),
         album: track.metadata.album ?? undefined,
-        artwork: isNil(track.metadata.coverSrc)
+        artwork: isNil(track.metadata.cover)
           ? undefined
           : [
               {
-                src: track.metadata.coverSrc,
+                src: track.metadata.cover.src,
+                sizes: [track.metadata.cover.width, track.metadata.cover.height].join('x'),
               },
             ],
       });

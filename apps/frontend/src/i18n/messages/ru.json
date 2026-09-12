@@ -89,6 +89,7 @@
     "couldNotSendPost": "Не удалось отправить пост"
   },
   "ExplorerElementAudio": {
+    "cover": "Обложка {trackName}",
     "duration": "Длительность",
     "artists": "Исполнитель(-и)",
     "album": "Альбом",
@@ -98,6 +99,8 @@
   "ThePlayer": {
     "copied": "Скопировано!",
     "copyLink": "Скопировать ссылку",
+    "cover": "Обложка {trackName}",
+    "openCover": "Открыть обложку",
     "trackProgress": "Прогресс трека",
     "volume": "Громкость",
     "previousTrack": "Предыдущий трек",
