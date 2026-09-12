@@ -161,7 +161,7 @@ const pathDirectoryToNavigationItems = (
         return [
           ...segments,
           {
-            text: segment,
+            text: decodeURIComponent(segment),
             href: [segments.at(-1)?.href, segment].join('/'),
           },
         ];
