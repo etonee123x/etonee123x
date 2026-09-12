@@ -5,10 +5,10 @@
 @theme {
   --spacing-header-height: 3rem;
 
-  --z-index-player: 1000;
-  --z-index-footer: 1000;
-  --z-index-header: 1000;
-  --z-index-modal: 10000;
+  --z-index-player: 10;
+  --z-index-footer: 10;
+  --z-index-header: 10;
+  --z-index-modal: 100;
   --z-index-explorer-navbar: 10;
 
   --animate-runner: runner 1s linear infinite;
