@@ -32,7 +32,7 @@ export const ExplorerElementHeader = ({
   return (
     <CardHeader className="flex min-w-0 items-center justify-between gap-2">
       <BaseAlwaysScrollable>
-        <header className="text-lg">{name}</header>
+        <h2 className="text-lg">{name}</h2>
       </BaseAlwaysScrollable>
       <ExplorerElementTime createdAt={createdAt} />
     </CardHeader>

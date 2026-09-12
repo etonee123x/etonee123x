@@ -1,5 +1,6 @@
 import {
   Breadcrumb,
+  BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
@@ -204,12 +205,16 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
           {breadcrumbLinks.map((link, index) => {
             return (
               <Fragment key={index}>
-                <BreadcrumbLink render={<Link href={link.href} />}>{link.text}</BreadcrumbLink>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href={link.href} />}>{link.text}</BreadcrumbLink>
+                </BreadcrumbItem>
                 <BreadcrumbSeparator />
               </Fragment>
             );
           })}
-          <BreadcrumbPage className="text-primary">{lastNavigationItem.text}</BreadcrumbPage>
+          <BreadcrumbItem>
+            <BreadcrumbPage className="text-primary">{lastNavigationItem.text}</BreadcrumbPage>
+          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
