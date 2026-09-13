@@ -72,6 +72,18 @@ export default async function RootLayout({ children, params }: Readonly<LayoutPr
 
   return (
     <html lang={locale} className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        {/* Theme variables render server-side before page content. */}
+        <style>{`
+          :root {
+            ${colorTheme.light}
+          }
+
+          :root.dark {
+            ${colorTheme.dark}
+          }
+        `}</style>
+      </head>
       <body className="flex flex-col min-h-dvh">
         <Providers>
           <Header className="fixed top-0 w-full z-1 h-header-height" />
@@ -81,15 +93,6 @@ export default async function RootLayout({ children, params }: Readonly<LayoutPr
           <Footer />
           <Gallery />
         </Providers>
-        <style>{`
-          :root {
-            ${colorTheme.light}
-
-            &.dark {
-              ${colorTheme.dark}
-            }
-          }
-        `}</style>
       </body>
     </html>
   );

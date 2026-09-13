@@ -9,7 +9,7 @@ export const ExplorerElementFileUnknown = ({
   href,
 }: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemUnknown'] }) => {
   return (
-    <article className="contents">
+    <li className="contents">
       <Card
         size="sm"
         className="pointer-events-none relative ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
@@ -22,6 +22,6 @@ export const ExplorerElementFileUnknown = ({
         />
         <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
       </Card>
-    </article>
+    </li>
   );
 };

@@ -72,6 +72,8 @@
     "cancel": "Отмена"
   },
   "Post": {
+    "post": "Пост",
+    "postWithContent": "Пост «{content}»",
     "edit": "Редактировать",
     "delete": "Удалить",
     "confirm": "Подтвердить",

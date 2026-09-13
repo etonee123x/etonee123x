@@ -71,7 +71,7 @@ export const ExplorerElementFileAudio = ({
   ];
 
   return (
-    <article className="contents">
+    <li className="contents">
       <Card
         size="sm"
         className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
@@ -107,8 +107,10 @@ export const ExplorerElementFileAudio = ({
                     key={metadataItem.key}
                     className="grid gap-x-2 grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center"
                   >
-                    <metadataItem.Icon className="row-span-2 size-6 shrink-0" />
-                    <dt className="text-muted-foreground font-normal">{metadataItem.title}</dt>
+                    <dt className="contents font-normal">
+                      <metadataItem.Icon aria-hidden="true" className="row-span-2 size-6 shrink-0" />
+                      <span className="text-muted-foreground">{metadataItem.title}</span>
+                    </dt>
                     <dd className="text-secondary-foreground">{metadataItem.value}</dd>
                   </div>
                 );
@@ -117,6 +119,6 @@ export const ExplorerElementFileAudio = ({
           </CardContent>
         </div>
       </Card>
-    </article>
+    </li>
   );
 };
