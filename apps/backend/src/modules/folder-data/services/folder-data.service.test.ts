@@ -157,4 +157,33 @@ describe('FolderDataService', () => {
       statusCode: 400,
     });
   });
+
+  it('getAllFilePaths returns nested file and folder paths with timestamps and ignores .git', async () => {
+    const rootDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'folder-data-'));
+    temporaryDirectories.push(rootDirectory);
+
+    const albumDirectory = path.join(rootDirectory, 'album');
+    await fs.mkdir(path.join(albumDirectory, '.git'), { recursive: true });
+    await fs.writeFile(path.join(rootDirectory, 'root.mp3'), Buffer.from('root'));
+    await fs.writeFile(path.join(albumDirectory, 'song.mp3'), Buffer.from('song'));
+    await fs.writeFile(path.join(albumDirectory, '.git', 'HEAD'), Buffer.from('ref'));
+
+    const service = new FolderDataService({
+      filesLocation: new FilesLocation({ fs: rootDirectory, src: '/content' }),
+      filesService: {} as never,
+    });
+
+    const result = await service.getAllFilePaths();
+
+    expect(
+      result.map((item) => {
+        return item.path;
+      }),
+    ).toEqual(expect.arrayContaining(['/root.mp3', '/album', '/album/song.mp3']));
+    expect(result).toHaveLength(3);
+    for (const item of result) {
+      expect(typeof item.createdAt).toBe('number');
+      expect(typeof item.updatedAt).toBe('number');
+    }
+  });
 });

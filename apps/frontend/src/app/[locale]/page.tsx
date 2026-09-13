@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { getAlternates } from '@/shared/lib/metadata';
 
-export const generateMetadata = async (): Promise<Metadata> => {
+export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]'>>): Promise<Metadata> => {
+  const { locale } = await params;
   const t = await getTranslations('Index');
 
   return {
     title: `${t('indexPage')} | etonee123x`,
+    alternates: getAlternates('', locale),
   };
 };
 

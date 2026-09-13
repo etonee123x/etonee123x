@@ -22,16 +22,21 @@ export class PostsService {
     return [randomUUID(), ...(fileType ? [fileType.ext] : [])].join('.');
   }
 
+  /**
+   * Returns all posts or paginated slice based on pageSize and cursor parameters.
+   */
   async getPosts(parameters: {
     cursorPrevious: string | null;
     cursorNext: string | null;
     postId: string | null;
-    pageSize: number;
+    pageSize: number | null;
   }): Promise<CursorPage<Post>> {
+    const pageSize = parameters.pageSize ?? 10;
+
     if (parameters.postId) {
       const posts = await this.postsRepo.findPostsAroundPostId({
         postId: parameters.postId,
-        pageSize: parameters.pageSize,
+        pageSize,
       });
       if (!posts) {
         throw new AppError(404, 'Posts was not found');
@@ -43,7 +48,7 @@ export class PostsService {
     if (parameters.cursorPrevious) {
       const posts = await this.postsRepo.findPostsByCursorPrevious({
         cursorPrevious: parameters.cursorPrevious,
-        pageSize: parameters.pageSize,
+        pageSize,
       });
       if (!posts) {
         throw new AppError(404, 'Posts was not found');
@@ -55,13 +60,17 @@ export class PostsService {
     if (parameters.cursorNext) {
       const posts = await this.postsRepo.findPostsByCursorNext({
         cursorNext: parameters.cursorNext,
-        pageSize: parameters.pageSize,
+        pageSize,
       });
       if (!posts) {
         throw new AppError(404, 'Posts was not found');
       }
 
       return posts;
+    }
+
+    if (parameters.pageSize === null) {
+      return this.postsRepo.findAllPosts();
     }
 
     return this.postsRepo.findFirstPosts({ pageSize: parameters.pageSize });

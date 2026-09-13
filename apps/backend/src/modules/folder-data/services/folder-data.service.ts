@@ -41,6 +41,45 @@ export class FolderDataService {
     return resolveSafePath(this.filesLocation.fs, pathAsRelativeUrl);
   }
 
+  /**
+   * Returns every file and folder path with its created/updated timestamps, skipping full file inspection (e.g. for sitemap generation).
+   */
+  async getAllFilePaths(): Promise<Array<{ path: string; createdAt: number; updatedAt: number }>> {
+    const collectPaths = async (
+      relativeDirectory: string,
+    ): Promise<Array<{ path: string; createdAt: number; updatedAt: number }>> => {
+      const items = await nodeFsPromises.readdir(this.pathAsRelativeUrlToSystemPath(relativeDirectory), {
+        withFileTypes: true,
+      });
+
+      const nestedPaths = await Promise.all(
+        items
+          .filter((item) => {
+            return !PROHIBITED_ELEMENTS_NAMES.has(item.name);
+          })
+          .map(async (item) => {
+            const pathAsRelativeUrl = nodePath.posix.join(relativeDirectory, item.name);
+            const statAwaited = await nodeFsPromises.stat(this.pathAsRelativeUrlToSystemPath(pathAsRelativeUrl));
+            const ownEntry = {
+              path: encodeUrlPath(pathAsRelativeUrl),
+              createdAt: statAwaited.birthtimeMs,
+              updatedAt: statAwaited.mtimeMs,
+            };
+
+            if (item.isDirectory()) {
+              return [ownEntry, ...(await collectPaths(pathAsRelativeUrl))];
+            }
+
+            return [ownEntry];
+          }),
+      );
+
+      return nestedPaths.flat();
+    };
+
+    return collectPaths('/');
+  }
+
   async getFolderData(parameters: { pathAsRelativeUrl: string }) {
     const statAwaited = await getStat({
       path: this.pathAsRelativeUrlToSystemPath(parameters.pathAsRelativeUrl),

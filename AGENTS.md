@@ -20,7 +20,7 @@ This block is written and re-added by `next dev` — verify at `apps/frontend/no
 ## Rules
 
 - Read the nearest implementation first. Keep edits focused; preserve public APIs.
-- Comment every added or changed code section so its intent is clear to people and other agents. Comments must explain behavior, invariants, and non-obvious decisions, not restate syntax.
+- Comment every added or changed code section so its intent is clear to people and other agents. Comments must explain behavior, invariants, and non-obvious decisions, not restate syntax. Write function and method comments as JSDoc (`/** ... */`) so they highlight and show hover docs in the IDE.
 - Never commit secrets, real `.env` files, generated build output, or runtime uploads.
 - Read version-matched Next.js docs from `apps/frontend/node_modules/next/dist/docs/` before changing Next.js code.
 

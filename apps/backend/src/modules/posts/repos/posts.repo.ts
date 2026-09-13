@@ -3,6 +3,11 @@ import type { Post } from '../entities/post.entity';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
 
 export interface PostsRepo {
+  /**
+   * Returns all posts without pagination limits.
+   */
+  findAllPosts: () => Promise<CursorPage<Post>>;
+
   findFirstPosts: (parameters: { pageSize: number }) => Promise<CursorPage<Post>>;
 
   findPostsAroundPostId: (parameters: { postId: string; pageSize: number }) => Promise<CursorPage<Post> | null>;

@@ -10,7 +10,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/ui/ds
 import type { Metadata } from 'next';
 import { isNil } from '@/shared/utils/is-nil';
 import { FILE_TYPES } from '@/entities/file';
-import { getSiteImage } from '@/shared/lib/metadata';
+import { getSiteImage, getAlternates } from '@/shared/lib/metadata';
 
 const FormPostCreate = dynamic(() => {
   return import('@/features/post/editor').then((module) => {
@@ -32,6 +32,7 @@ export const generateMetadata = async ({
 
   const defaults = {
     title: t('blog'),
+    alternates: getAlternates(postId ? `/blog/${postId}` : '/blog', locale),
     openGraph: {
       url: postId ? `/${locale}/blog/${postId}` : `/${locale}/blog`,
     },

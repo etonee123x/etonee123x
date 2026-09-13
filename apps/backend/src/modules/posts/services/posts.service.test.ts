@@ -11,6 +11,7 @@ import { AppError } from '@/shared/errors/app.error';
 import { PostsService } from '@/modules/posts/services/posts.service';
 
 interface MockedPostsRepo {
+  findAllPosts: ReturnType<typeof vi.fn>;
   findFirstPosts: ReturnType<typeof vi.fn>;
   findPostsAroundPostId: ReturnType<typeof vi.fn>;
   findPostsByCursorPrevious: ReturnType<typeof vi.fn>;
@@ -28,6 +29,7 @@ interface MockedFilesService {
 
 const buildService = () => {
   const postsRepo: MockedPostsRepo = {
+    findAllPosts: vi.fn(),
     findFirstPosts: vi.fn(),
     findPostsAroundPostId: vi.fn(),
     findPostsByCursorPrevious: vi.fn(),
@@ -76,6 +78,26 @@ describe('PostsService', () => {
         pageSize: 10,
       }),
     ).resolves.toBe(page);
+  });
+
+  it('returns all posts when getPosts is called with null pageSize', async () => {
+    const { service, postsRepo } = buildService();
+    const page = {
+      _meta: { cursorPrevious: null, cursorNext: null },
+      rows: [],
+    };
+
+    postsRepo.findAllPosts.mockResolvedValue(page);
+
+    await expect(
+      service.getPosts({
+        cursorPrevious: null,
+        cursorNext: null,
+        postId: null,
+        pageSize: null,
+      }),
+    ).resolves.toBe(page);
+    expect(postsRepo.findAllPosts).toHaveBeenCalledOnce();
   });
 
   it('throws 404 when around-post query returns null', async () => {

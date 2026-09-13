@@ -23,7 +23,7 @@ import {
 import type { Metadata } from 'next';
 import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { notFound } from 'next/navigation';
-import { getSiteImage } from '@/shared/lib/metadata';
+import { getSiteImage, getAlternates } from '@/shared/lib/metadata';
 import { Link } from '@/i18n/navigation';
 
 const ExplorerElementUp = dynamic(() => {
@@ -95,6 +95,7 @@ export const generateMetadata = async ({
 
   const defaults: Metadata = {
     title: folderData.file?.name ?? folderName,
+    alternates: getAlternates(segments.length > 0 ? `/explorer/${segments.join('/')}` : '/explorer', locale),
     openGraph: {
       url: [`/${locale}/explorer`, segments.join('/')].join('/'),
       images,

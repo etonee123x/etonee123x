@@ -16,6 +16,20 @@ const buildPost = (id: string, createdAt: number): Post => {
 };
 
 describe('PostsFsDatabaseRepo', () => {
+  it('findAllPosts returns all rows with null cursors', async () => {
+    const posts = [buildPost('1', 500), buildPost('2', 400), buildPost('3', 300)];
+    const fsDatabaseFile = {
+      read: vi.fn().mockResolvedValue(posts),
+    };
+
+    const repo = new PostsFsDatabaseRepo({ fsDatabaseFile: fsDatabaseFile as never });
+
+    const page = await repo.findAllPosts();
+
+    expect(page.rows).toEqual(posts);
+    expect(page._meta).toEqual({ cursorPrevious: null, cursorNext: null });
+  });
+
   it('findFirstPosts returns first page and next cursor', async () => {
     const posts = [buildPost('1', 500), buildPost('2', 400), buildPost('3', 300)];
     const fsDatabaseFile = {

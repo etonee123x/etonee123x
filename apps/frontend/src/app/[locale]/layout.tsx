@@ -17,7 +17,7 @@ import { GalleryProvider } from '@/widgets/gallery';
 import { ThemeProvider } from '@/features/theme';
 import { QueryClientProvider } from '@/shared/api/query';
 
-import { getSiteImage } from '@/shared/lib/metadata';
+import { getSiteImage, getAlternates } from '@/shared/lib/metadata';
 
 import '@/app/globals.css';
 import { getRandomColorTheme } from '@/shared/lib/color-theme';
@@ -32,6 +32,8 @@ export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]
       template: '%s | etonee123x',
       default: 'etonee123x',
     },
+    // Default canonical/hreflang for the root; pages override with their own path.
+    alternates: getAlternates('', locale),
     openGraph: {
       url: `/${locale}`,
       type: 'website',

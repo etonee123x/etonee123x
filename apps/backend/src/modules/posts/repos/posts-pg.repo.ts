@@ -6,6 +6,10 @@ import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
 import type { PostsRepo } from './posts.repo';
 
 export class PostsPgRepo extends PgRepo implements PostsRepo {
+  async findAllPosts(): Promise<CursorPage<Post>> {
+    throw new Error('Not implemented');
+  }
+
   async findFirstPosts(parameters: { pageSize: number }): Promise<CursorPage<Post>> {
     throw new Error('Not implemented');
   }
