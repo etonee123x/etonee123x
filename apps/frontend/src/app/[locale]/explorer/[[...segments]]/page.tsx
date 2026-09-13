@@ -219,17 +219,15 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
       </Breadcrumb>
 
       {/* Explorer entries use cards; list container provides shared spacing only. */}
-      <div role="list" className="mb-4 flex w-full flex-col gap-4">
-        <nav className="contents">
-          {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
-          {folderData.folders.map((folder) => {
-            return <ExplorerElementFolder key={folder.name} element={folder} href={folderDataItemToHref(folder)} />;
-          })}
-        </nav>
+      <ul className="mb-4 flex w-full flex-col gap-4">
+        {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
+        {folderData.folders.map((folder) => {
+          return <ExplorerElementFolder key={folder.name} element={folder} href={folderDataItemToHref(folder)} />;
+        })}
         {folderData.files.map((file) => {
           return <ExplorerElementFile key={file.name} element={file} href={folderDataItemToHref(file)} />;
         })}
-      </div>
+      </ul>
     </section>
   );
 }
