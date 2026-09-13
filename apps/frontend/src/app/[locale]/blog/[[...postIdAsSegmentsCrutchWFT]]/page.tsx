@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { Separator } from '@/shared/ui/ds/separator';
 import { getIsAdmin } from '@/entities/session/server';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-import { infiniteQueryOptionsGetPosts } from '@/entities/post';
+import { getPostDescription, infiniteQueryOptionsGetPosts } from '@/entities/post';
 import { Posts } from '@/widgets/posts';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/ui/ds/empty';
 import type { Metadata } from 'next';
@@ -59,27 +59,8 @@ export const generateMetadata = async ({
     throw new Error('Post not found');
   }
 
-  const description = (() => {
-    if (!post.text) {
-      return t('postInMyBlog');
-    }
-
-    const max = 140;
-    const text = post.text.replaceAll(/\n+/g, ' ').replaceAll(/\s+/g, ' ').trim();
-
-    if (text.length <= max) {
-      return text;
-    }
-
-    const textSliced = text.slice(0, max);
-    const indexOfLastSpace = textSliced.lastIndexOf(' ');
-
-    if (indexOfLastSpace === -1) {
-      return textSliced.slice(0, max - 1) + '…';
-    }
-
-    return textSliced.slice(0, indexOfLastSpace) + '…';
-  })();
+  // Use a blog-specific SEO fallback for posts without text.
+  const description = getPostDescription(post.text) || t('postInMyBlog');
 
   const image = post.attachments.find((attachment) => {
     return attachment.fileType === FILE_TYPES.IMAGE;

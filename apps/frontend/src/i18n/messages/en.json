@@ -72,6 +72,8 @@
     "cancel": "Cancel"
   },
   "Post": {
+    "post": "Post",
+    "postWithContent": "Post «{content}»",
     "edit": "Edit",
     "delete": "Delete",
     "confirm": "Confirm",

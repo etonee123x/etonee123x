@@ -1,6 +1,6 @@
 'use client';
 
-import { useInfiniteQueryGetPosts, useMutationPatchPostById } from '@/entities/post';
+import { getPostDescription, useInfiniteQueryGetPosts, useMutationPatchPostById } from '@/entities/post';
 import { useIsAdminContext } from '@/entities/session/client';
 import { DeletePostProvider, useDeletePostContext } from '@/features/post/delete';
 import { EditPostProvider, FormPost, useEditPostContext, type FormPostRef } from '@/features/post/editor';
@@ -71,6 +71,9 @@ const Post = ({
 
   const isEditing = postId === post._meta.id;
   const isSelected = selectedPostId === post._meta.id;
+  // Match the post's accessible name with its metadata description.
+  const content = getPostDescription(post.text);
+  const description = content ? t('postWithContent', { content }) : t('post');
 
   useEffect(() => {
     if (!isEditing) {
@@ -108,118 +111,120 @@ const Post = ({
   };
 
   return (
-    <Card
-      data-id={post._meta.id}
-      className={cn(
-        isSelected &&
-          "relative animate-post-highlight after:content-[''] after:absolute after:-inset-1.5 after:rounded-xl after:bg-primary/60 after:animate-post-fade after:-z-10",
-      )}
-    >
-      <CardContent className="flex flex-col gap-2">
-        {isEditing ? (
-          <FormPost
-            id={formPostId}
-            ref={formPostRef}
-            defaultValues={{
-              text: post.text,
-              attachments: post.attachments,
-            }}
-            {...{
-              post,
-              onValidityChange,
-              onSubmitWithoutChanges,
-              onSubmit,
-            }}
-          />
-        ) : (
-          <>
-            {post.text && <BaseHtml html={post.text} />}
-            {post.attachments.map((attachment, index) => {
-              return (
-                <PostAttachment
-                  key={index}
-                  attachment={attachment}
-                  index={index}
-                  onClick={() => {
-                    onClickAttachment(attachment);
-                  }}
-                />
-              );
-            })}
-            <Link
-              href={`/blog/${post._meta.id}`}
-              className="self-end hover:underline flex items-center gap-1 text-muted-foreground"
-              target="_blank"
-            >
-              <time
-                dateTime={new Date(post._meta.createdAt).toISOString()}
-                title={new Date(post._meta.createdAt).toISOString()}
-                className="contents"
-                suppressHydrationWarning
-              >
-                {relativeTime(post._meta.createdAt, now)}
-                {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
-              </time>
-            </Link>
-          </>
+    <article className="contents" aria-label={description}>
+      <Card
+        data-id={post._meta.id}
+        className={cn(
+          isSelected &&
+            "relative animate-post-highlight after:content-[''] after:absolute after:-inset-1.5 after:rounded-xl after:bg-primary/60 after:animate-post-fade after:-z-10",
         )}
-      </CardContent>
-
-      {isAdmin && (
-        <CardFooter className="justify-end gap-2">
+      >
+        <CardContent className="flex flex-col gap-2">
           {isEditing ? (
-            <>
-              <Button
-                key="confirm"
-                aria-label={t('confirm')}
-                title={t('confirm')}
-                type="submit"
-                form={formPostId}
-                disabled={!isEditFormValid}
-              >
-                <Check />
-              </Button>
-              <Button
-                key="cancel"
-                onClick={() => {
-                  exitEditPost();
-                }}
-                aria-label={t('cancel')}
-                title={t('cancel')}
-                variant="secondary"
-              >
-                <X />
-              </Button>
-            </>
+            <FormPost
+              id={formPostId}
+              ref={formPostRef}
+              defaultValues={{
+                text: post.text,
+                attachments: post.attachments,
+              }}
+              {...{
+                post,
+                onValidityChange,
+                onSubmitWithoutChanges,
+                onSubmit,
+              }}
+            />
           ) : (
             <>
-              <Button
-                key="edit"
-                aria-label={t('edit')}
-                onClick={() => {
-                  enterEditPostById(post._meta.id);
-                }}
-                title={t('edit')}
-                variant="secondary"
+              {post.text && <BaseHtml html={post.text} />}
+              {post.attachments.map((attachment, index) => {
+                return (
+                  <PostAttachment
+                    key={index}
+                    attachment={attachment}
+                    index={index}
+                    onClick={() => {
+                      onClickAttachment(attachment);
+                    }}
+                  />
+                );
+              })}
+              <Link
+                href={`/blog/${post._meta.id}`}
+                className="self-end hover:underline flex items-center gap-1 text-muted-foreground"
+                target="_blank"
               >
-                <Edit2 />
-              </Button>
-              <Button
-                key="delete"
-                aria-label={t('delete')}
-                onClick={() => {
-                  requestDeletePostById(post._meta.id);
-                }}
-                title={t('delete')}
-                variant="destructive"
-              >
-                <Trash2 />
-              </Button>
+                <time
+                  dateTime={new Date(post._meta.createdAt).toISOString()}
+                  title={new Date(post._meta.createdAt).toISOString()}
+                  className="contents"
+                  suppressHydrationWarning
+                >
+                  {relativeTime(post._meta.createdAt, now)}
+                  {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
+                </time>
+              </Link>
             </>
           )}
-        </CardFooter>
-      )}
-    </Card>
+        </CardContent>
+
+        {isAdmin && (
+          <CardFooter className="justify-end gap-2">
+            {isEditing ? (
+              <>
+                <Button
+                  key="confirm"
+                  aria-label={t('confirm')}
+                  title={t('confirm')}
+                  type="submit"
+                  form={formPostId}
+                  disabled={!isEditFormValid}
+                >
+                  <Check />
+                </Button>
+                <Button
+                  key="cancel"
+                  onClick={() => {
+                    exitEditPost();
+                  }}
+                  aria-label={t('cancel')}
+                  title={t('cancel')}
+                  variant="secondary"
+                >
+                  <X />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  key="edit"
+                  aria-label={t('edit')}
+                  onClick={() => {
+                    enterEditPostById(post._meta.id);
+                  }}
+                  title={t('edit')}
+                  variant="secondary"
+                >
+                  <Edit2 />
+                </Button>
+                <Button
+                  key="delete"
+                  aria-label={t('delete')}
+                  onClick={() => {
+                    requestDeletePostById(post._meta.id);
+                  }}
+                  title={t('delete')}
+                  variant="destructive"
+                >
+                  <Trash2 />
+                </Button>
+              </>
+            )}
+          </CardFooter>
+        )}
+      </Card>
+    </article>
   );
 };
 
