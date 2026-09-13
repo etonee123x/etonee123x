@@ -75,6 +75,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/folder-data/all-paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all file and folder paths with timestamps (internal, for sitemap generation) */
+        get: operations["getAllFolderDataPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -184,6 +201,12 @@ export interface components {
             file: components["schemas"]["FolderDataItemFile"] | null;
             pathDirectory: string;
         };
+        FolderDataPathItem: {
+            path: string;
+            createdAt: number;
+            updatedAt: number;
+        };
+        FolderDataAllPathsResponse: components["schemas"]["FolderDataPathItem"][];
     };
     responses: never;
     parameters: never;
@@ -464,6 +487,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Error404"];
+                };
+            };
+        };
+    };
+    getAllFolderDataPaths: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDataAllPathsResponse"];
                 };
             };
         };

@@ -64,7 +64,7 @@ describe('PostsController', () => {
     });
   });
 
-  it('uses default pageSize when query is absent', async () => {
+  it('passes null pageSize when query is absent', async () => {
     const getPosts = vi.fn(async () => {
       return {
         _meta: { cursorPrevious: null, cursorNext: null },
@@ -82,7 +82,7 @@ describe('PostsController', () => {
     await request(app).get('/posts').expect(200);
 
     expect(getPosts).toHaveBeenCalledWith({
-      pageSize: 10,
+      pageSize: null,
       cursorPrevious: null,
       cursorNext: null,
       postId: null,

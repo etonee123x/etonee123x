@@ -1,0 +1,12 @@
+type: object
+properties:
+  path:
+    type: string
+  createdAt:
+    type: number
+  updatedAt:
+    type: number
+required:
+  - path
+  - createdAt
+  - updatedAt

@@ -32,6 +32,8 @@ paths:
 
   /folder-data:
     $ref: paths/folder-data.yaml
+  /folder-data/all-paths:
+    $ref: paths/folder-data_all-paths.yaml
 
 components:
   securitySchemes:

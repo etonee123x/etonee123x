@@ -34,11 +34,18 @@ export class FolderDataController extends Controller {
     return response.send(folderData);
   };
 
+  private getAllFolderDataPaths: RequestHandlerTyped<'/folder-data/all-paths', 'get'> = async (...[, response]) => {
+    const paths = await this.folderDataService.getAllFilePaths();
+
+    return response.send(paths);
+  };
+
   constructor(parameters: { folderDataService: FolderDataService }) {
     super();
 
     this.folderDataService = parameters.folderDataService;
 
     this.router.get('/folder-data', ...folderDataGetValidationRules, this.getFolderData);
+    this.router.get('/folder-data/all-paths', this.getAllFolderDataPaths);
   }
 }

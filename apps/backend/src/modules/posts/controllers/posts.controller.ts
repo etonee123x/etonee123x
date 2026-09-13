@@ -1,5 +1,4 @@
 import { query, body, param } from 'express-validator';
-import { nonNullable } from '@/utils/non-nullable';
 import { requestToUrl } from '@/utils/request-to-url';
 import type { components } from '@/types/openapi';
 import type { RequestHandlerTyped } from '@/types/request-handler-typed';
@@ -32,7 +31,9 @@ const postDeleteValidationRules = [param('id').isString().notEmpty().withMessage
 export class PostsController extends Controller {
   private getPosts: RequestHandlerTyped<'/posts', 'get'> = async (request, response) => {
     const url = requestToUrl(request);
-    const pageSize = Number(nonNullable(url.searchParams.get('pageSize') ?? 10));
+    const pageSizeParameter = url.searchParams.get('pageSize');
+    // When pageSize is omitted in query, pass null to bypass pagination and return all rows.
+    const pageSize = pageSizeParameter === null ? null : Number(pageSizeParameter);
     const cursorPrevious = url.searchParams.get('filters[cursorPrevious]');
     const cursorNext = url.searchParams.get('filters[cursorNext]');
     const postId = url.searchParams.get('filters[postId]');

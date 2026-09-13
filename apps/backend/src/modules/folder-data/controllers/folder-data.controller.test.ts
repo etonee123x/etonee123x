@@ -60,4 +60,19 @@ describe('FolderDataController', () => {
     expect(response.body).toMatchObject({ statusCode: 400 });
     expect(getFolderData).not.toHaveBeenCalled();
   });
+
+  it('returns all file/folder paths from /folder-data/all-paths', async () => {
+    const payload = [{ path: '/album/song.mp3', createdAt: 1, updatedAt: 2 }];
+
+    const getAllFilePaths = vi.fn(async () => {
+      return payload;
+    });
+
+    const app = buildApp({ getAllFilePaths });
+
+    const response = await request(app).get('/folder-data/all-paths').expect(200);
+
+    expect(getAllFilePaths).toHaveBeenCalledOnce();
+    expect(response.body).toEqual(payload);
+  });
 });

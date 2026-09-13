@@ -111,7 +111,6 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 10
           description: Items per page
       responses:
         '200':
@@ -261,6 +260,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error404'
+  /folder-data/all-paths:
+    get:
+      operationId: getAllFolderDataPaths
+      summary: Get all file and folder paths with timestamps (internal, for sitemap generation)
+      tags:
+        - FolderData
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderDataAllPathsResponse'
 components:
   securitySchemes:
     cookieAuth:
@@ -354,9 +366,20 @@ components:
                   nullable: true
                 duration:
                   type: number
-                coverSrc:
-                  type: string
+                cover:
+                  type: object
                   nullable: true
+                  properties:
+                    src:
+                      type: string
+                    width:
+                      type: number
+                    height:
+                      type: number
+                  required:
+                    - src
+                    - width
+                    - height
               required:
                 - bitrate
                 - duration
@@ -364,7 +387,7 @@ components:
                 - artists
                 - bpm
                 - year
-                - coverSrc
+                - cover
           required:
             - metadata
             - fileType
@@ -604,3 +627,20 @@ components:
         - files
         - file
         - pathDirectory
+    FolderDataPathItem:
+      type: object
+      properties:
+        path:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - path
+        - createdAt
+        - updatedAt
+    FolderDataAllPathsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/FolderDataPathItem'

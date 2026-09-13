@@ -1,0 +1,12 @@
+get:
+  operationId: getAllFolderDataPaths
+  summary: Get all file and folder paths with timestamps (internal, for sitemap generation)
+  tags:
+    - FolderData
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/FolderDataAllPathsResponse.yaml

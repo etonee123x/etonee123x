@@ -5,6 +5,21 @@ import type { Post } from '../entities/post.entity';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
 
 export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Post> implements PostsRepo {
+  /**
+   * Returns all posts with null cursors for consumers that bypass pagination.
+   */
+  async findAllPosts(): Promise<CursorPage<Post>> {
+    const posts = await this.fsDatabaseFile.read();
+
+    return {
+      _meta: {
+        cursorPrevious: null,
+        cursorNext: null,
+      },
+      rows: posts,
+    };
+  }
+
   async findFirstPosts(parameters: { pageSize: number }): Promise<CursorPage<Post>> {
     const posts = await this.fsDatabaseFile.read();
 
