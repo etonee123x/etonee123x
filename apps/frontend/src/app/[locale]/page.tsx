@@ -18,7 +18,7 @@ export default async function Home() {
 
   return (
     <section className="layout-container mb-4">
-      <h1 className="h1 mb-2">{t('indexPage')}</h1>
+      <h1 className="h1 mb-4">{t('indexPage')}</h1>
       <div className="flex flex-col gap-2">
         <BlogWidget />
       </div>
