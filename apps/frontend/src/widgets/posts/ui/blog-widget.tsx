@@ -13,7 +13,7 @@ export const BlogWidget = async () => {
   const postCount = posts._meta.total;
 
   return (
-    <div className="flex flex-col gap-2 rounded-3xl border border-primary/40 bg-primary/5 p-3">
+    <div className="flex flex-col gap-2 rounded-4xl border border-primary/40 bg-primary/5 p-4">
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)] items-baseline gap-x-2 gap-y-1">
         <hgroup className="contents">
           <h2 className="col-start-1 row-start-1 min-w-0 text-xl font-semibold tracking-tight">{t('blog')}</h2>
