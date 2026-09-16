@@ -134,7 +134,7 @@ export default async function Blog({ params }: Readonly<PageProps<'/[locale]/blo
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <section className="layout-container">
+      <section className="layout-container mb-6">
         <h1 className="h1 mb-4">{t('blog')}</h1>
         {isAdmin && (
           <>

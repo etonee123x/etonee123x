@@ -196,7 +196,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
   const navigationItemUp = navigationItems.at(-2);
 
   return (
-    <section className="layout-container">
+    <section className="layout-container mb-6">
       <SendFolderDataToPlayer folderData={folderData} />
       <SendFolderDataToGallery folderData={folderData} lastNavigationItemHref={lastNavigationItem.href} />
       <h1 className="h1 mb-4">{t('content')}</h1>
@@ -220,7 +220,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
       </Breadcrumb>
 
       {/* Explorer entries use cards; list container provides shared spacing only. */}
-      <ul className="mb-4 flex w-full flex-col gap-4">
+      <ul className="flex w-full flex-col gap-4">
         {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
         {folderData.folders.map((folder) => {
           return <ExplorerElementFolder key={folder.name} element={folder} href={folderDataItemToHref(folder)} />;

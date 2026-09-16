@@ -1,7 +1,12 @@
 {
   "Index": {
-    "indexPage": "Index page",
-    "yesThereIsNothingHere": "Yes, there is nothing here :("
+    "indexPage": "Index page"
+  },
+  "BlogWidget": {
+    "blog": "Blog",
+    "whatIWriteAbout": "My blog, here you can check out my posts; I write about the complexities of life, about thoughts that concern me! So think with your head.",
+    "noPostsYet": "No posts yet",
+    "seeAllPosts": "See all {count, plural, =1 {# post} other {# posts}}"
   },
   "Blog": {
     "blog": "Blog",

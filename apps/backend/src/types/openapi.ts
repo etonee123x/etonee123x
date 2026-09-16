@@ -159,6 +159,8 @@ export interface components {
         };
         PostsResponse: {
             _meta: {
+                /** @description Total number of posts */
+                total: number;
                 cursorPrevious: number | null;
                 cursorNext: number | null;
             };

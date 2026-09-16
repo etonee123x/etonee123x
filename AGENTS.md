@@ -21,7 +21,10 @@ This block is written and re-added by `next dev` — verify at `apps/frontend/no
 
 - Read the nearest implementation first. Keep edits focused; preserve public APIs.
 - Comment every added or changed code section so its intent is clear to people and other agents. Comments must explain behavior, invariants, and non-obvious decisions, not restate syntax. Write function and method comments as JSDoc (`/** ... */`) so they highlight and show hover docs in the IDE.
+- TypeScript is a concise extension to JS, not an endless diaper. Rely on type inference; NEVER declare standalone interfaces/types when inline typing or inference suffices. Never export Props types unless explicitly requested. Never duplicate types that TS already derives.
 - Never commit secrets, real `.env` files, generated build output, or runtime uploads.
+- Translation keys must be concise, natural English phrases describing the rendered text, such as `latestPost` or `noPostsYet`. Never use technical placeholder names such as `title`, `empty`, `open`, or `label`.
+- Give every distinct translated text its own key in every locale file; do not reuse generic keys across files or components.
 - Read version-matched Next.js docs from `apps/frontend/node_modules/next/dist/docs/` before changing Next.js code.
 
 ## Skills
