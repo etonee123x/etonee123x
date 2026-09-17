@@ -3,7 +3,7 @@ import { FILE_TYPES } from '@/entities/file/@x/folder-data';
 import { type components } from '@/shared/api/openapi';
 import { checkExhaustive } from '@/shared/utils/check-exhaustive';
 import dynamic from 'next/dynamic';
-import { type ComponentProps } from 'react';
+import { type ComponentProps, type CSSProperties } from 'react';
 
 const ExplorerElementFileAudio = dynamic(() => {
   return import('./explorer-element-file-audio').then((module) => {
@@ -32,19 +32,23 @@ const ExplorerElementFileUnknown = dynamic(() => {
 export const ExplorerElementFile = ({
   element,
   href,
-}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemFile'] }) => {
+  style,
+}: Pick<ComponentProps<typeof Link>, 'href'> & {
+  element: components['schemas']['FolderDataItemFile'];
+  style?: CSSProperties;
+}) => {
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {
-      return <ExplorerElementFileAudio element={element} href={href} />;
+      return <ExplorerElementFileAudio element={element} href={href} style={style} />;
     }
     case FILE_TYPES.IMAGE: {
-      return <ExplorerElementFileImage element={element} href={href} />;
+      return <ExplorerElementFileImage element={element} href={href} style={style} />;
     }
     case FILE_TYPES.VIDEO: {
-      return <ExplorerElementFileVideo element={element} href={href} />;
+      return <ExplorerElementFileVideo element={element} href={href} style={style} />;
     }
     case FILE_TYPES.UNKNOWN: {
-      return <ExplorerElementFileUnknown element={element} href={href} />;
+      return <ExplorerElementFileUnknown element={element} href={href} style={style} />;
     }
     default: {
       throw checkExhaustive(element);

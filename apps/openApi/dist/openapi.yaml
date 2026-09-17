@@ -241,12 +241,20 @@ paths:
       tags:
         - FolderData
       parameters:
-        - name: path
-          in: query
-          required: true
+        - in: query
+          name: path
+          required: false
           schema:
             type: string
-          description: Path inside folder-data (e.g. /path/to/folder)
+          description: Path inside folder-data. Mutually exclusive with isNewest.
+        - in: query
+          name: isNewest
+          required: false
+          schema:
+            type: boolean
+            enum:
+              - true
+          description: Return newest folder data. Mutually exclusive with path.
       responses:
         '200':
           description: OK
@@ -487,6 +495,10 @@ components:
         _meta:
           type: object
           properties:
+            total:
+              type: integer
+              minimum: 0
+              description: Total number of posts
             cursorPrevious:
               type: integer
               nullable: true
@@ -494,6 +506,7 @@ components:
               type: integer
               nullable: true
           required:
+            - total
             - cursorPrevious
             - cursorNext
         rows:

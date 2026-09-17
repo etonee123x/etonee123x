@@ -4,7 +4,7 @@ import { type components } from '@/shared/api/openapi';
 import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { Calendar, Clock, Disc3, Metronome, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type ComponentProps } from 'react';
+import { type ComponentProps, type CSSProperties } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
@@ -14,7 +14,11 @@ import Image from 'next/image';
 export const ExplorerElementFileAudio = ({
   element,
   href,
-}: Pick<ComponentProps<typeof Link>, 'href'> & { element: components['schemas']['FolderDataItemAudio'] }) => {
+  style,
+}: Pick<ComponentProps<typeof Link>, 'href'> & {
+  element: components['schemas']['FolderDataItemAudio'];
+  style?: CSSProperties;
+}) => {
   const t = useTranslations('ExplorerElementAudio');
 
   const metadataItems = [
@@ -71,10 +75,11 @@ export const ExplorerElementFileAudio = ({
   ];
 
   return (
-    <li className="contents">
+    <article className="contents">
       <Card
         size="sm"
-        className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-transparent transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+        style={style}
+        className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
@@ -86,17 +91,19 @@ export const ExplorerElementFileAudio = ({
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
         <div className="grid grid-cols-1 @sm/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
-          {!isNil(element.metadata.cover) && (
-            <Image
-              data-cover
-              className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
-              src={element.metadata.cover.src}
-              alt={t('cover', { trackName: element.name })}
-              width={element.metadata.cover.width}
-              height={element.metadata.cover.height}
-            />
-          )}
-          <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+          <header className="contents">
+            {!isNil(element.metadata.cover) && (
+              <Image
+                data-cover
+                className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
+                src={element.metadata.cover.src}
+                alt={t('cover', { trackName: element.name })}
+                width={element.metadata.cover.width}
+                height={element.metadata.cover.height}
+              />
+            )}
+            <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+          </header>
           {/* Separator aligns with the card's padded header and content. */}
           <Separator className="m-(--card-spacing) w-auto!" />
           <CardContent>
@@ -119,6 +126,6 @@ export const ExplorerElementFileAudio = ({
           </CardContent>
         </div>
       </Card>
-    </li>
+    </article>
   );
 };

@@ -50,6 +50,52 @@ describe('FolderDataController', () => {
     expect(response.body).toEqual(payload);
   });
 
+  it('returns the newest folder when newest is true', async () => {
+    const payload = {
+      folders: [],
+      files: [],
+      file: null,
+      pathDirectory: '/latest',
+    };
+
+    const getNewestFolderData = vi.fn(async () => {
+      return payload;
+    });
+
+    const app = buildApp({ getNewestFolderData });
+
+    const response = await request(app).get('/folder-data?isNewest=true').expect(200);
+
+    expect(getNewestFolderData).toHaveBeenCalledOnce();
+    expect(response.body).toEqual(payload);
+  });
+
+  it('rejects requests that pass both path and isNewest together', async () => {
+    const getFolderData = vi.fn();
+    const getNewestFolderData = vi.fn();
+
+    const app = buildApp({ getFolderData, getNewestFolderData });
+
+    const response = await request(app).get('/folder-data?path=/music&isNewest=true').expect(400);
+
+    expect(response.body).toMatchObject({ statusCode: 400 });
+    expect(getFolderData).not.toHaveBeenCalled();
+    expect(getNewestFolderData).not.toHaveBeenCalled();
+  });
+
+  it('rejects false isNewest value', async () => {
+    const getFolderData = vi.fn();
+    const getNewestFolderData = vi.fn();
+
+    const app = buildApp({ getFolderData, getNewestFolderData });
+
+    const response = await request(app).get('/folder-data?isNewest=false').expect(400);
+
+    expect(response.body).toMatchObject({ statusCode: 400 });
+    expect(getFolderData).not.toHaveBeenCalled();
+    expect(getNewestFolderData).not.toHaveBeenCalled();
+  });
+
   it('returns 400 when path does not start with /', async () => {
     const getFolderData = vi.fn();
 

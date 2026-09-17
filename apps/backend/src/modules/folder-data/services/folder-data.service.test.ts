@@ -186,4 +186,35 @@ describe('FolderDataService', () => {
       expect(typeof item.updatedAt).toBe('number');
     }
   });
+
+  it('finds the folder containing the newest file without comparing directory mtime', async () => {
+    const rootDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'folder-data-'));
+    temporaryDirectories.push(rootDirectory);
+
+    const musicDirectory = path.join(rootDirectory, 'music');
+    await fs.mkdir(musicDirectory);
+    await fs.writeFile(path.join(rootDirectory, 'old.txt'), Buffer.from('old'));
+    await fs.writeFile(path.join(musicDirectory, 'new.mp3'), Buffer.from('new'));
+    await fs.utimes(path.join(rootDirectory, 'old.txt'), 1, 10);
+    await fs.utimes(path.join(musicDirectory, 'new.mp3'), 1, 20);
+
+    const filesService = {
+      getFileInspection: vi.fn(async (parameters: { key: string }) => {
+        return buildStoredFile(path.basename(parameters.key));
+      }),
+    };
+    const service = new FolderDataService({
+      filesLocation: new FilesLocation({ fs: rootDirectory, src: '/content' }),
+      filesService: filesService as never,
+    });
+
+    const result = await service.getNewestFolderData();
+
+    expect(result.pathDirectory).toBe('/music');
+    expect(
+      result.files.map((file) => {
+        return file.name;
+      }),
+    ).toEqual(['new.mp3']);
+  });
 });

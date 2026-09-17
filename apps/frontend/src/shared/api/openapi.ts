@@ -463,9 +463,11 @@ export interface operations {
     };
     getFolderData: {
         parameters: {
-            query: {
-                /** @description Path inside folder-data (e.g. /path/to/folder) */
-                path: string;
+            query?: {
+                /** @description Path inside folder-data. Mutually exclusive with isNewest. */
+                path?: string;
+                /** @description Return newest folder data. Mutually exclusive with path. */
+                isNewest?: true;
             };
             header?: never;
             path?: never;

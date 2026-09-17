@@ -21,6 +21,7 @@ import { getSiteImage, getAlternates } from '@/shared/lib/metadata';
 
 import '@/app/globals.css';
 import { getRandomColorTheme } from '@/shared/lib/color-theme';
+import type { PropsWithChildren } from 'react';
 
 export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]'>>): Promise<Metadata> => {
   const { locale } = await params;
@@ -47,7 +48,7 @@ export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]
   };
 };
 
-const Providers = ({ children }: { children: React.ReactNode }) => {
+const Providers = ({ children }: PropsWithChildren) => {
   return (
     <NextIntlClientProvider>
       <IsAdminProvider>

@@ -11,7 +11,7 @@ export const ExplorerElementFolder = ({
   ...props
 }: ComponentProps<typeof Link> & { element: components['schemas']['FolderDataItemFolder'] }) => {
   return (
-    <li className="contents">
+    <article className="contents">
       <Card
         size="sm"
         className="pointer-events-none relative ring-primary bg-muted/50 transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
@@ -22,8 +22,10 @@ export const ExplorerElementFolder = ({
           aria-label={element.name}
           className={cn('pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none', className)}
         />
-        <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+        <header className="contents">
+          <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
+        </header>
       </Card>
-    </li>
+    </article>
   );
 };

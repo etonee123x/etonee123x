@@ -7,14 +7,36 @@ import { Controller } from '@/shared/controller';
 import { AppError } from '@/shared/errors/app.error';
 
 const folderDataGetValidationRules = [
+  query('path').optional().isString().notEmpty().withMessage('path must be a non-empty string'),
   query('path')
-    .isString()
-    .notEmpty()
-    .withMessage('path is required and must be a string')
+    .optional()
     .custom((value: string) => {
       return value.startsWith('/');
     })
     .withMessage('path must start with /'),
+  query('path')
+    .optional()
+    .custom((value: string, { req }) => {
+      if (value && req.query?.isNewest === 'true') {
+        throw new Error('path and isNewest are mutually exclusive');
+      }
+
+      return true;
+    }),
+  query('isNewest').optional().isBoolean().withMessage('isNewest must be a boolean'),
+  query('isNewest')
+    .optional()
+    .custom((value: string, { req }) => {
+      if (value !== 'true') {
+        throw new Error('isNewest must be true');
+      }
+
+      if (req.query?.path) {
+        throw new Error('path and isNewest are mutually exclusive');
+      }
+
+      return true;
+    }),
   validateRequest,
 ];
 
@@ -25,11 +47,15 @@ export class FolderDataController extends Controller {
     const url = requestToUrl(request);
 
     const path = url.searchParams.get('path');
-    if (!path) {
-      throw new AppError(400, 'path is required');
+    const isNewest = url.searchParams.get('isNewest') === 'true';
+
+    if (!path && !isNewest) {
+      throw new AppError(400, 'path or isNewest is required');
     }
 
-    const folderData = await this.folderDataService.getFolderData({ pathAsRelativeUrl: path });
+    const folderData = isNewest
+      ? await this.folderDataService.getNewestFolderData()
+      : await this.folderDataService.getFolderData({ pathAsRelativeUrl: path as string });
 
     return response.send(folderData);
   };
