@@ -16,14 +16,19 @@ export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]
 
 export default async function Home() {
   const t = await getTranslations('Index');
+  const [explorerWidget, blogWidget] = await Promise.all([ExplorerWidget(), BlogWidget()]);
 
   return (
     <section className="layout-container mb-4">
       <h1 className="h1 mb-4">{t('indexPage')}</h1>
-      <div className="flex flex-col gap-4">
-        <ExplorerWidget />
-        <BlogWidget />
-      </div>
+      {explorerWidget || blogWidget ? (
+        <div className="flex flex-col gap-4">
+          {explorerWidget}
+          {blogWidget}
+        </div>
+      ) : (
+        <p className="text-[1px]">{t('yesThereIsNothingHere')}</p>
+      )}
     </section>
   );
 }

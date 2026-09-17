@@ -1,6 +1,7 @@
 {
   "Index": {
-    "indexPage": "Начальная страница"
+    "indexPage": "Начальная страница",
+    "yesThereIsNothingHere": "Да, тут ничего нет :("
   },
   "BlogWidget": {
     "blog": "Блог",

@@ -1,6 +1,7 @@
 {
   "Index": {
-    "indexPage": "Index page"
+    "indexPage": "Index page",
+    "yesThereIsNothingHere": "Yes, there is nothing here :("
   },
   "BlogWidget": {
     "blog": "Blog",
