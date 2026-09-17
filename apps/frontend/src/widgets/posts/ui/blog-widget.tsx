@@ -8,8 +8,12 @@ import { Post } from './post';
 export const BlogWidget = async () => {
   const t = await getTranslations('BlogWidget');
   const posts = await getPosts({ pageSize: 1 });
-  const latestPost = posts.rows[0];
+  const newestPost = posts.rows[0];
   const postCount = posts._meta.total;
+
+  if (!newestPost) {
+    return null;
+  }
 
   return (
     <WidgetPanel
@@ -17,11 +21,7 @@ export const BlogWidget = async () => {
       description={t('whatIWriteAbout')}
       link={{ href: '/blog', children: t('seeAllPosts', { count: postCount }) }}
     >
-      {latestPost ? (
-        <Post post={latestPost} selectedPostId={null} />
-      ) : (
-        <p className="text-muted-foreground">{t('noPostsYet')}</p>
-      )}
+      <Post post={newestPost} selectedPostId={null} />
     </WidgetPanel>
   );
 };

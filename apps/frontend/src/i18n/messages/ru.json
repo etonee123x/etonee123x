@@ -5,7 +5,6 @@
   "BlogWidget": {
     "blog": "Блог",
     "whatIWriteAbout": "Мой блог, тут можно заценить мои посты; пишу о жизни непростой, о мыслях, что меня волнуют! Вот и думай головой.",
-    "noPostsYet": "Постов пока нет",
     "seeAllPosts": "Посмотреть все {count, plural, one {# пост} few {# поста} many {# постов} other {# постов}}"
   },
   "ExplorerWidget": {
