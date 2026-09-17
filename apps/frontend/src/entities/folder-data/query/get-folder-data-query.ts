@@ -5,7 +5,7 @@ export const getFolderDataQueryOptions = (path: string) => {
   return queryOptions({
     queryKey: ['folder-data', path] as const,
     queryFn: async (context) => {
-      return getFolderData(context.queryKey[1]);
+      return getFolderData({ path: context.queryKey[1] });
     },
   });
 };

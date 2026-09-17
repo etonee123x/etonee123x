@@ -3,6 +3,30 @@
     "indexPage": "Index page",
     "yesThereIsNothingHere": "Yes, there is nothing here :("
   },
+  "BlogWidget": {
+    "blog": "Blog",
+    "whatIWriteAbout": "My blog, here you can check out my posts; I write about the complexities of life, about thoughts that concern me! So think with your head.",
+    "seeAllPosts": "See all {count, plural, =1 {# post} other {# posts}}"
+  },
+  "ExplorerWidget": {
+    "content": "Content"
+  },
+  "GetExplorerDescription": {
+    "common": {
+      "soWhatWeHaveHere": "Hmm-m, what do we have here? Folder {folderName}{fileDescription} and other folders and files; with music, pictures, videos",
+      "watch": ", watch the {type} {fileName}",
+      "image": "image",
+      "video": "video"
+    },
+    "audio": {
+      "checkOutTrack": "Check out the track \"{name}\" — {artists}{album}{year}{duration} and something else",
+      "artists": " {artists}",
+      "album": " from \"{album}\"",
+      "year": " ({year})",
+      "duration": " with a duration of {duration}",
+      "idkWho": "idk who"
+    }
+  },
   "Blog": {
     "blog": "Blog",
     "noPosts": "No posts",
@@ -13,23 +37,7 @@
   },
   "Explorer": {
     "content": "Content",
-    "treeDots": "...",
-    "description": {
-      "common": {
-        "soWhatWeHaveHere": "Hmm-m, what do we have here? Folder {folderName}{fileDescription} and other folders and files; with music, pictures, videos",
-        "watch": ", watch the {type} {fileName}",
-        "image": "image",
-        "video": "video"
-      },
-      "audio": {
-        "checkOutTrack": "Check out the track \"{name}\" — {artists}{album}{year}{duration} and something else",
-        "artists": " {artists}",
-        "album": " from \"{album}\"",
-        "year": " ({year})",
-        "duration": " with a duration of {duration}",
-        "idkWho": "idk who"
-      }
-    }
+    "treeDots": "..."
   },
   "NotFound": {
     "pageNotFound": "Page not found",

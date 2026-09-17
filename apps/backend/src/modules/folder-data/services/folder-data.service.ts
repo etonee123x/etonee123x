@@ -80,6 +80,42 @@ export class FolderDataService {
     return collectPaths('/');
   }
 
+  /**
+  Finds the directory containing the newest file using one recursive filesystem pass.
+  */
+  async getNewestFolderData() {
+    const findNewestFile = async (relativeDirectory: string, latest: { mtime: number; path: string } | null) => {
+      const items = await nodeFsPromises.readdir(this.pathAsRelativeUrlToSystemPath(relativeDirectory), {
+        withFileTypes: true,
+      });
+      let newestFile = latest;
+
+      for (const item of items) {
+        if (PROHIBITED_ELEMENTS_NAMES.has(item.name)) {
+          continue;
+        }
+
+        const relativePath = nodePath.posix.join(relativeDirectory, item.name);
+        const stat = await nodeFsPromises.stat(this.pathAsRelativeUrlToSystemPath(relativePath));
+
+        if (item.isDirectory()) {
+          newestFile = await findNewestFile(relativePath, newestFile);
+        } else if (!newestFile || stat.mtimeMs > newestFile.mtime) {
+          newestFile = { mtime: stat.mtimeMs, path: relativePath };
+        }
+      }
+
+      return newestFile;
+    };
+
+    const newestFile = await findNewestFile('/', null);
+    if (!newestFile) {
+      throw new AppError(404, 'No files were found');
+    }
+
+    return this.getFolderData({ pathAsRelativeUrl: nodePath.posix.dirname(newestFile.path) });
+  }
+
   async getFolderData(parameters: { pathAsRelativeUrl: string }) {
     const statAwaited = await getStat({
       path: this.pathAsRelativeUrlToSystemPath(parameters.pathAsRelativeUrl),

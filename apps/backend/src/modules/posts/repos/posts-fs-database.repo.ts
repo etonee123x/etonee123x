@@ -13,6 +13,7 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
 
     return {
       _meta: {
+        total: posts.length,
         cursorPrevious: null,
         cursorNext: null,
       },
@@ -25,6 +26,7 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
 
     return {
       _meta: {
+        total: posts.length,
         cursorPrevious: null,
         cursorNext: posts[parameters.pageSize]?._meta.createdAt ?? null,
       },
@@ -48,6 +50,7 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
 
     return {
       _meta: {
+        total: posts.length,
         cursorPrevious: posts[start - 1]?._meta.createdAt ?? null,
         cursorNext: posts[end]?._meta.createdAt ?? null,
       },
@@ -74,6 +77,7 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
 
     return {
       _meta: {
+        total: posts.length,
         cursorPrevious: posts[indexInitial - 1]?._meta.createdAt ?? null,
         cursorNext: posts[indexLast]?._meta.createdAt ?? null,
       },
@@ -97,6 +101,7 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
 
     return {
       _meta: {
+        total: posts.length,
         cursorPrevious: posts[indexInitial - 1]?._meta.createdAt ?? null,
         cursorNext: posts[indexLast]?._meta.createdAt ?? null,
       },

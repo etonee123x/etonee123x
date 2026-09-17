@@ -27,7 +27,7 @@ describe('PostsFsDatabaseRepo', () => {
     const page = await repo.findAllPosts();
 
     expect(page.rows).toEqual(posts);
-    expect(page._meta).toEqual({ cursorPrevious: null, cursorNext: null });
+    expect(page._meta).toEqual({ total: 3, cursorPrevious: null, cursorNext: null });
   });
 
   it('findFirstPosts returns first page and next cursor', async () => {
@@ -46,7 +46,7 @@ describe('PostsFsDatabaseRepo', () => {
         return post._meta.id;
       }),
     ).toEqual(['1', '2']);
-    expect(page._meta).toEqual({ cursorPrevious: null, cursorNext: 300 });
+    expect(page._meta).toEqual({ total: 3, cursorPrevious: null, cursorNext: 300 });
   });
 
   it('findPostsAroundPostId returns rows around target post', async () => {
@@ -71,7 +71,7 @@ describe('PostsFsDatabaseRepo', () => {
         return post._meta.id;
       }),
     ).toEqual(['1', '2', '3', '4']);
-    expect(page?._meta).toEqual({ cursorPrevious: null, cursorNext: 100 });
+    expect(page?._meta).toEqual({ total: 5, cursorPrevious: null, cursorNext: 100 });
   });
 
   it('findPostsAroundPostId returns null when post is not found', async () => {
@@ -106,7 +106,7 @@ describe('PostsFsDatabaseRepo', () => {
         return post._meta.id;
       }),
     ).toEqual(['2', '3']);
-    expect(page?._meta).toEqual({ cursorPrevious: 500, cursorNext: 200 });
+    expect(page?._meta).toEqual({ total: 5, cursorPrevious: 500, cursorNext: 200 });
   });
 
   it('findPostsByCursorPrevious returns null for unknown cursor', async () => {
@@ -141,7 +141,7 @@ describe('PostsFsDatabaseRepo', () => {
         return post._meta.id;
       }),
     ).toEqual(['3', '4']);
-    expect(page?._meta).toEqual({ cursorPrevious: 400, cursorNext: 100 });
+    expect(page?._meta).toEqual({ total: 5, cursorPrevious: 400, cursorNext: 100 });
   });
 
   it('findPostsByCursorNext returns null for unknown cursor', async () => {

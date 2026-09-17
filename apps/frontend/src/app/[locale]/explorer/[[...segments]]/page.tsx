@@ -16,12 +16,12 @@ import { SendFolderDataToPlayer } from '@/widgets/player';
 import { SendFolderDataToGallery } from '@/widgets/gallery';
 import {
   getFolderDataQueryOptions,
+  getExplorerDescription,
   isFolderDataItemFileAudio,
   isFolderDataItemFileImage,
   isFolderDataItemFileVideo,
 } from '@/entities/folder-data';
 import type { Metadata } from 'next';
-import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { notFound } from 'next/navigation';
 import { getSiteImage, getAlternates } from '@/shared/lib/metadata';
 import { Link } from '@/i18n/navigation';
@@ -54,10 +54,6 @@ export const generateMetadata = async ({
   params,
 }: Readonly<PageProps<'/[locale]/explorer/[[...segments]]'>>): Promise<Metadata> => {
   const { segments = [], locale } = await params;
-  const t = await getTranslations('Explorer');
-
-  const intlListFormat = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' });
-
   const queryClient = new QueryClient();
   const folderData = await queryClient.query(getFolderDataQueryOptions('/' + segments.join('/')));
 
@@ -113,41 +109,9 @@ export const generateMetadata = async ({
     },
   };
 
-  if (isFolderDataItemFileAudio(folderData.file)) {
-    return {
-      ...defaults,
-      description: t('description.audio.checkOutTrack', {
-        name: folderData.file.name,
-        artists:
-          folderData.file.metadata.artists.length > 0
-            ? intlListFormat.format(folderData.file.metadata.artists)
-            : t('description.audio.idkWho'),
-        album: t('description.audio.album', {
-          album: folderData.file.metadata.album ?? folderName,
-        }),
-        year: folderData.file.metadata.year ? t('description.audio.year', { year: folderData.file.metadata.year }) : '',
-        duration: folderData.file.metadata.duration
-          ? t('description.audio.duration', {
-              duration: millisecondsToHumanReadable(folderData.file.metadata.duration),
-            })
-          : '',
-      }),
-    };
-  }
-
   return {
     ...defaults,
-    description: t('description.common.soWhatWeHaveHere', {
-      folderName,
-      fileDescription: folderData.file
-        ? t('description.common.watch', {
-            type: isFolderDataItemFileImage(folderData.file)
-              ? t('description.common.image')
-              : t('description.common.video'),
-            fileName: folderData.file.name,
-          })
-        : '',
-    }),
+    description: await getExplorerDescription({ folderName, file: folderData.file }),
   };
 };
 
@@ -196,7 +160,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
   const navigationItemUp = navigationItems.at(-2);
 
   return (
-    <section className="layout-container">
+    <section className="layout-container mb-6">
       <SendFolderDataToPlayer folderData={folderData} />
       <SendFolderDataToGallery folderData={folderData} lastNavigationItemHref={lastNavigationItem.href} />
       <h1 className="h1 mb-4">{t('content')}</h1>
@@ -220,13 +184,25 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
       </Breadcrumb>
 
       {/* Explorer entries use cards; list container provides shared spacing only. */}
-      <ul className="mb-4 flex w-full flex-col gap-4">
-        {navigationItemUp && <ExplorerElementUp href={navigationItemUp.href} />}
+      <ul className="flex w-full flex-col gap-4">
+        {navigationItemUp && (
+          <li className="contents">
+            <ExplorerElementUp href={navigationItemUp.href} />
+          </li>
+        )}
         {folderData.folders.map((folder) => {
-          return <ExplorerElementFolder key={folder.name} element={folder} href={folderDataItemToHref(folder)} />;
+          return (
+            <li className="contents" key={folder.name}>
+              <ExplorerElementFolder element={folder} href={folderDataItemToHref(folder)} />
+            </li>
+          );
         })}
         {folderData.files.map((file) => {
-          return <ExplorerElementFile key={file.name} element={file} href={folderDataItemToHref(file)} />;
+          return (
+            <li className="contents" key={file.name}>
+              <ExplorerElementFile element={file} href={folderDataItemToHref(file)} />
+            </li>
+          );
         })}
       </ul>
     </section>

@@ -3,6 +3,30 @@
     "indexPage": "Начальная страница",
     "yesThereIsNothingHere": "Да, тут ничего нет :("
   },
+  "BlogWidget": {
+    "blog": "Блог",
+    "whatIWriteAbout": "Мой блог, тут можно заценить мои посты; пишу о жизни непростой, о мыслях, что меня волнуют! Вот и думай головой.",
+    "seeAllPosts": "Посмотреть все {count, plural, one {# пост} few {# поста} many {# постов} other {# постов}}"
+  },
+  "ExplorerWidget": {
+    "content": "Контент"
+  },
+  "GetExplorerDescription": {
+    "common": {
+      "soWhatWeHaveHere": "Оппа, что тут у нас? Папка {folderName}{fileDescription} и другие папки и файлы; с музыкой, картинками, видосиками",
+      "watch": ", смотреть {type} {fileName}",
+      "image": "изображение",
+      "video": "видео"
+    },
+    "audio": {
+      "checkOutTrack": "Зацени трек \"{name}\" — {artists}{album}{year}{duration} и чо нибудь ещё",
+      "artists": " {artists}",
+      "album": " из \"{album}\"",
+      "year": " ({year})",
+      "duration": " длительностью {duration}",
+      "idkWho": "хз кто"
+    }
+  },
   "Blog": {
     "blog": "Блог",
     "noPosts": "Нет постов",
@@ -13,23 +37,7 @@
   },
   "Explorer": {
     "content": "Контент",
-    "treeDots": "...",
-    "description": {
-      "common": {
-        "soWhatWeHaveHere": "Оппа, что тут у нас? Папка {folderName}{fileDescription} и другие папки и файлы; с музыкой, картинками, видосиками",
-        "watch": ", смотреть {type} {fileName}",
-        "image": "изображение",
-        "video": "видео"
-      },
-      "audio": {
-        "checkOutTrack": "Зацени трек \"{name}\" — {artists}{album}{year}{duration} и чо нибудь ещё",
-        "artists": " {artists}",
-        "album": " из \"{album}\"",
-        "year": " ({year})",
-        "duration": " длительностью {duration}",
-        "idkWho": "хз кто"
-      }
-    }
+    "treeDots": "..."
   },
   "NotFound": {
     "pageNotFound": "Страница не найдена",

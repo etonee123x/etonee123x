@@ -159,6 +159,8 @@ export interface components {
         };
         PostsResponse: {
             _meta: {
+                /** @description Total number of posts */
+                total: number;
                 cursorPrevious: number | null;
                 cursorNext: number | null;
             };
@@ -461,9 +463,11 @@ export interface operations {
     };
     getFolderData: {
         parameters: {
-            query: {
-                /** @description Path inside folder-data (e.g. /path/to/folder) */
-                path: string;
+            query?: {
+                /** @description Path inside folder-data. Mutually exclusive with isNewest. */
+                path?: string;
+                /** @description Return newest folder data. Mutually exclusive with path. */
+                isNewest?: true;
             };
             header?: never;
             path?: never;
