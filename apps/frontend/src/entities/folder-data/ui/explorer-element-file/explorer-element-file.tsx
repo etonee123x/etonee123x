@@ -48,7 +48,7 @@ export const ExplorerElementFile = ({
       return <ExplorerElementFileVideo element={element} href={href} style={style} />;
     }
     case FILE_TYPES.UNKNOWN: {
-      return <ExplorerElementFileUnknown element={element} href={href} style={style} />;
+      return <ExplorerElementFileUnknown element={element} style={style} />;
     }
     default: {
       throw checkExhaustive(element);
