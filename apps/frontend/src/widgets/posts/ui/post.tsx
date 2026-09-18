@@ -6,8 +6,10 @@ import { Link } from '@/i18n/navigation';
 import type { components } from '@/shared/api/openapi';
 import { useGalleryContext } from '@/shared/lib/gallery';
 import { BaseHtml } from '@/shared/ui/base-html';
+import { Button } from '@/shared/ui/ds/button';
 import { Card, CardContent, CardFooter } from '@/shared/ui/ds/card';
-import { Edit2 } from 'lucide-react';
+import { Separator } from '@/shared/ui/ds/separator';
+import { Edit2, Share2 } from 'lucide-react';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/utils/cn';
@@ -29,18 +31,44 @@ const toGalleryItem = (
   } as const;
 };
 
+/** Opens the native share sheet for a post and ignores deliberate cancellation. */
+const PostShareButton = ({ postId }: { postId: components['schemas']['PostResponse']['_meta']['id'] }) => {
+  const t = useTranslations('Post');
+
+  const onClickShare = async () => {
+    try {
+      await globalThis.navigator.share({
+        title: document.title,
+        url: new URL(`/blog/${postId}`, globalThis.location.origin).toString(),
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      throw error;
+    }
+  };
+
+  return (
+    <Button aria-label={t('share')} variant="secondary" onClick={onClickShare}>
+      <Share2 />
+    </Button>
+  );
+};
+
 export const Post = ({
   post,
   selectedPostId,
   onClickAttachment,
   content,
-  footer,
+  afterFooterButtons,
 }: {
   post: components['schemas']['PostResponse'];
   selectedPostId: components['schemas']['PostResponse']['_meta']['id'] | null;
   onClickAttachment?: (attachment: components['schemas']['StoredFile']) => void;
   content?: ReactNode;
-  footer?: ReactNode;
+  afterFooterButtons?: ReactNode;
 }) => {
   const t = useTranslations('Post');
   const { relativeTime } = useFormatter();
@@ -93,25 +121,35 @@ export const Post = ({
                   />
                 );
               })}
-              <Link
-                href={`/blog/${post._meta.id}`}
-                className="self-end hover:underline flex items-center gap-1 text-muted-foreground"
-                target="_blank"
-              >
-                <time
-                  dateTime={new Date(post._meta.createdAt).toISOString()}
-                  title={new Date(post._meta.createdAt).toISOString()}
-                  className="contents"
-                  suppressHydrationWarning
-                >
-                  {relativeTime(post._meta.createdAt, now)}
-                  {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
-                </time>
-              </Link>
             </>
           )}
         </CardContent>
-        {footer && <CardFooter className="justify-end gap-2">{footer}</CardFooter>}
+        <footer className="contents">
+          <CardFooter className="justify-between gap-2">
+            <Link
+              href={`/blog/${post._meta.id}`}
+              className="hover:underline flex items-center gap-1 me-auto text-muted-foreground"
+              target="_blank"
+            >
+              <time
+                dateTime={new Date(post._meta.createdAt).toISOString()}
+                title={new Date(post._meta.createdAt).toISOString()}
+                className="contents"
+                suppressHydrationWarning
+              >
+                {relativeTime(post._meta.createdAt, now)}
+                {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
+              </time>
+            </Link>
+            <PostShareButton postId={post._meta.id} />
+            {afterFooterButtons && (
+              <>
+                <Separator orientation="vertical" className="h-6 my-auto" />
+                {afterFooterButtons}
+              </>
+            )}
+          </CardFooter>
+        </footer>
       </Card>
     </article>
   );

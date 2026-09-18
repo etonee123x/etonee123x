@@ -84,6 +84,7 @@
     "postWithContent": "Пост «{content}»",
     "edit": "Редактировать",
     "delete": "Удалить",
+    "share": "Поделиться",
     "confirm": "Подтвердить",
     "cancel": "Отменить",
     "couldNotSavePost": "Не удалось сохранить пост",

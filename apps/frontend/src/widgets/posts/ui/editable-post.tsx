@@ -51,7 +51,7 @@ export const EditablePost = ({
     router.push('/blog', { scroll: false });
   };
 
-  const footer = (() => {
+  const adminActions = (() => {
     if (!isAdmin) {
       return null;
     }
@@ -106,7 +106,7 @@ export const EditablePost = ({
       post={post}
       selectedPostId={selectedPostId}
       onClickAttachment={onClickAttachment}
-      footer={footer}
+      afterFooterButtons={adminActions}
       content={
         isEditing ? (
           <FormPost

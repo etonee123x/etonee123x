@@ -84,6 +84,7 @@
     "postWithContent": "Post «{content}»",
     "edit": "Edit",
     "delete": "Delete",
+    "share": "Share",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "couldNotSavePost": "Failed to save post",
