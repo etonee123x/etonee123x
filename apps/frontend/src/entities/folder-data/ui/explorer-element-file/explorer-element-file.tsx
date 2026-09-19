@@ -1,14 +1,12 @@
 'use client';
 
 import { FILE_TYPES } from '@/entities/file/@x/folder-data';
+import { share, ShareButton } from '@/features/share';
 import { type components } from '@/shared/api/openapi';
-import { Button } from '@/shared/ui/ds/button';
 import { CardFooter } from '@/shared/ui/ds/card';
 import { checkExhaustive } from '@/shared/utils/check-exhaustive';
-import { Share2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useTranslations } from 'next-intl';
-import { type CSSProperties, type ReactNode } from 'react';
+import { type CSSProperties } from 'react';
 
 const ExplorerElementFileAudio = dynamic(() => {
   return import('./explorer-element-file-audio').then((module) => {
@@ -34,35 +32,18 @@ const ExplorerElementFileUnknown = dynamic(() => {
   });
 });
 
-const FileShareFooter = ({ href, name }: { href: string; name: string }) => {
-  const t = useTranslations('ExplorerElementFile');
-
-  const onClickShare = async () => {
-    try {
-      await globalThis.navigator.share({
-        title: name,
-        url: new URL(href, globalThis.location.origin).toString(),
-      });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        return;
-      }
-
-      throw error;
-    }
+const FileFooter = ({ href, name }: { href: string; name: string }) => {
+  const onClickShareButton = () => {
+    return share({
+      title: name,
+      url: new URL(href, globalThis.location.origin).toString(),
+    });
   };
 
   return (
     <footer className="contents">
       <CardFooter className="justify-end">
-        <Button
-          className="pointer-events-auto relative z-1"
-          aria-label={t('share')}
-          variant="secondary"
-          onClick={onClickShare}
-        >
-          <Share2 />
-        </Button>
+        <ShareButton className="pointer-events-auto relative z-1" variant="secondary" onClick={onClickShareButton} />
       </CardFooter>
     </footer>
   );
@@ -77,7 +58,7 @@ export const ExplorerElementFile = ({
   href: string;
   style?: CSSProperties;
 }) => {
-  const footer: ReactNode = <FileShareFooter href={href} name={element.name} />;
+  const footer = <FileFooter href={href} name={element.name} />;
 
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {

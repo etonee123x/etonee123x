@@ -84,7 +84,6 @@
     "postWithContent": "Post «{content}»",
     "edit": "Edit",
     "delete": "Delete",
-    "share": "Share",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "couldNotSavePost": "Failed to save post",
@@ -107,9 +106,6 @@
     "year": "Release year",
     "bpm": "BPM"
   },
-  "ExplorerElementFile": {
-    "share": "Share file"
-  },
   "ThePlayer": {
     "copied": "Copied!",
     "copyLink": "Copy link",
@@ -124,5 +120,8 @@
     "closePlayer": "Close player",
     "enableShuffleTracks": "Enable shuffle tracks",
     "disableShuffleTracks": "Disable shuffle tracks"
+  },
+  "ShareButton": {
+    "share": "Share"
   }
 }

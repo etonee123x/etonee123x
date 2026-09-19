@@ -2,14 +2,14 @@
 
 import { getPostDescription } from '@/entities/post';
 import { FILE_TYPES } from '@/entities/file';
+import { share, ShareButton } from '@/features/share';
 import { Link } from '@/i18n/navigation';
 import type { components } from '@/shared/api/openapi';
 import { useGalleryContext } from '@/shared/lib/gallery';
 import { BaseHtml } from '@/shared/ui/base-html';
-import { Button } from '@/shared/ui/ds/button';
 import { Card, CardContent, CardFooter } from '@/shared/ui/ds/card';
 import { Separator } from '@/shared/ui/ds/separator';
-import { Edit2, Share2 } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/utils/cn';
@@ -29,32 +29,6 @@ const toGalleryItem = (
     name: attachment.name,
     type: attachment.fileType === FILE_TYPES.IMAGE ? 'image' : 'video',
   } as const;
-};
-
-/** Opens the native share sheet for a post and ignores deliberate cancellation. */
-const PostShareButton = ({ postId }: { postId: components['schemas']['PostResponse']['_meta']['id'] }) => {
-  const t = useTranslations('Post');
-
-  const onClickShare = async () => {
-    try {
-      await globalThis.navigator.share({
-        title: document.title,
-        url: new URL(`/blog/${postId}`, globalThis.location.origin).toString(),
-      });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        return;
-      }
-
-      throw error;
-    }
-  };
-
-  return (
-    <Button aria-label={t('share')} variant="secondary" onClick={onClickShare}>
-      <Share2 />
-    </Button>
-  );
 };
 
 export const Post = ({
@@ -94,6 +68,13 @@ export const Post = ({
         return isGalleryAttachment(postAttachment) ? [toGalleryItem(postAttachment)] : [];
       }),
     );
+  };
+
+  const onClickShareButton = () => {
+    return share({
+      url: new URL(`/blog/${post._meta.id}`, globalThis.location.origin).toString(),
+      text: post.text || undefined,
+    });
   };
 
   return (
@@ -141,7 +122,7 @@ export const Post = ({
                 {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
               </time>
             </Link>
-            <PostShareButton postId={post._meta.id} />
+            <ShareButton onClick={onClickShareButton} variant="secondary" />
             {afterFooterButtons && (
               <>
                 <Separator orientation="vertical" className="h-6 my-auto" />
