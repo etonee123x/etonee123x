@@ -34,7 +34,7 @@ const toGalleryItem = (
 export const Post = ({
   post,
   selectedPostId,
-  onClickAttachment,
+  onClickAttachment: _onClickAttachment,
   content,
   afterFooterButtons,
 }: {
@@ -45,15 +45,20 @@ export const Post = ({
   afterFooterButtons?: ReactNode;
 }) => {
   const t = useTranslations('Post');
+
   const { relativeTime } = useFormatter();
   const now = useNow();
+
   const { open, setOnClose } = useGalleryContext();
+
   const isSelected = selectedPostId === post._meta.id;
+
   const descriptionContent = getPostDescription(post.text);
   const description = descriptionContent ? t('postWithContent', { content: descriptionContent }) : t('post');
-  const handleAttachmentClick = (attachment: components['schemas']['StoredFile']) => {
-    if (onClickAttachment) {
-      onClickAttachment(attachment);
+
+  const onClickAttachment = (attachment: components['schemas']['StoredFile']) => {
+    if (_onClickAttachment) {
+      _onClickAttachment(attachment);
       return;
     }
 
@@ -97,7 +102,7 @@ export const Post = ({
                     attachment={attachment}
                     index={index}
                     onClick={() => {
-                      handleAttachmentClick(attachment);
+                      onClickAttachment(attachment);
                     }}
                   />
                 );
