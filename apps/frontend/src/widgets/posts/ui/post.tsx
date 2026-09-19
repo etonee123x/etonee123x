@@ -67,6 +67,7 @@ export const Post = ({
     }
 
     setOnClose(null);
+
     open(
       toGalleryItem(attachment),
       post.attachments.flatMap((postAttachment) => {
@@ -77,6 +78,7 @@ export const Post = ({
 
   const onClickShareButton = () => {
     return share({
+      title: globalThis.document.title,
       url: new URL(`/blog/${post._meta.id}`, globalThis.location.origin).toString(),
       text: post.text || undefined,
     });
