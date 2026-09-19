@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/shared/ui/ds/card';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
-import { type ComponentProps, type CSSProperties } from 'react';
+import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { Separator } from '@/shared/ui/ds/separator';
 import { ExplorerElementHeader } from '../explorer-element-header';
 
@@ -10,16 +10,18 @@ export const ExplorerElementFileImage = ({
   element,
   href,
   style,
+  footer,
 }: Pick<ComponentProps<typeof Link>, 'href'> & {
   element: components['schemas']['FolderDataItemImage'];
   style?: CSSProperties;
+  footer: ReactNode;
 }) => {
   return (
     <article className="contents">
       <Card
         size="sm"
         style={style}
-        className="pointer-events-none relative ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[a:hover]:bg-muted has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+        className="pointer-events-none relative ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[button:hover,a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
@@ -36,6 +38,7 @@ export const ExplorerElementFileImage = ({
         <CardContent className="mx-auto max-w-full">
           <Image src={element.src} alt={element.name} width={element.metadata.width} height={element.metadata.height} />
         </CardContent>
+        {footer}
       </Card>
     </article>
   );

@@ -107,6 +107,9 @@
     "year": "Release year",
     "bpm": "BPM"
   },
+  "ExplorerElementFile": {
+    "share": "Share file"
+  },
   "ThePlayer": {
     "copied": "Copied!",
     "copyLink": "Copy link",

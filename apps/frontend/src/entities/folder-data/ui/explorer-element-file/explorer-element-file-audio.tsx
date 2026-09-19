@@ -4,7 +4,7 @@ import { type components } from '@/shared/api/openapi';
 import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { Calendar, Clock, Disc3, Metronome, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type ComponentProps, type CSSProperties } from 'react';
+import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
 import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
@@ -15,9 +15,11 @@ export const ExplorerElementFileAudio = ({
   element,
   href,
   style,
+  footer,
 }: Pick<ComponentProps<typeof Link>, 'href'> & {
   element: components['schemas']['FolderDataItemAudio'];
   style?: CSSProperties;
+  footer: ReactNode;
 }) => {
   const t = useTranslations('ExplorerElementAudio');
 
@@ -79,7 +81,7 @@ export const ExplorerElementFileAudio = ({
       <Card
         size="sm"
         style={style}
-        className="group/audio @container/audio pointer-events-none gap-0 relative overflow-hidden ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
+        className="group/audio @container/audio pointer-events-none relative overflow-hidden ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[button:hover,a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px]"
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
@@ -125,6 +127,7 @@ export const ExplorerElementFileAudio = ({
             </dl>
           </CardContent>
         </div>
+        {footer}
       </Card>
     </article>
   );

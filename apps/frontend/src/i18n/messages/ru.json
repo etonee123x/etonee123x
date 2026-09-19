@@ -107,6 +107,9 @@
     "year": "Год выхода",
     "bpm": "Темп"
   },
+  "ExplorerElementFile": {
+    "share": "Поделиться файлом"
+  },
   "ThePlayer": {
     "copied": "Скопировано!",
     "copyLink": "Скопировать ссылку",
