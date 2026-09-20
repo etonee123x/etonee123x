@@ -123,5 +123,8 @@
   },
   "ShareButton": {
     "share": "Share"
+  },
+  "DownloadButton": {
+    "downloadFile": "Download file ({size})"
   }
 }

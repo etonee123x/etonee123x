@@ -5,6 +5,10 @@ import { type components } from '@/shared/api/openapi';
 import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { ExplorerElementHeader } from '../../explorer-element-header';
 import { Video } from './video';
+import {
+  EXPLORER_ELEMENT_FILE_CARD_CLASS_NAME,
+  EXPLORER_ELEMENT_FILE_CARD_LINK_CLASS_NAME,
+} from '../explorer-element-file-card-classes';
 
 export const ExplorerElementFileVideo = ({
   element,
@@ -18,17 +22,13 @@ export const ExplorerElementFileVideo = ({
 }) => {
   return (
     <article className="contents">
-      <Card
-        style={style}
-        size="sm"
-        className="pointer-events-none relative ring-primary bg-(--explorer-element-bg) transition-colors duration-100 has-[button:hover,a:hover]:bg-muted/50 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:outline-[3px] has-[a:focus-visible]:outline-ring/50"
-      >
+      <Card style={style} size="sm" className={EXPLORER_ELEMENT_FILE_CARD_CLASS_NAME}>
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
           href={href}
           scroll={false}
           aria-label={element.name}
-          className="pointer-events-auto absolute inset-0 z-0 rounded-xl outline-none"
+          className={EXPLORER_ELEMENT_FILE_CARD_LINK_CLASS_NAME}
         />
         <header className="contents">
           <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />

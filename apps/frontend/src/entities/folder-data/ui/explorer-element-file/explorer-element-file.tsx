@@ -1,6 +1,7 @@
 'use client';
 
 import { FILE_TYPES } from '@/entities/file/@x/folder-data';
+import { DownloadButton } from '@/features/file-download';
 import { share, ShareButton } from '@/features/share';
 import { type components } from '@/shared/api/openapi';
 import { CardFooter } from '@/shared/ui/ds/card';
@@ -32,17 +33,23 @@ const ExplorerElementFileUnknown = dynamic(() => {
   });
 });
 
-const FileFooter = ({ href, name }: { href: string; name: string }) => {
+const FileFooter = ({ element }: { element: components['schemas']['FolderDataItemFile'] }) => {
   const onClickShareButton = () => {
     return share({
-      title: name,
-      url: new URL(href, globalThis.location.origin).toString(),
+      title: element.name,
+      url: new URL(element.src, globalThis.location.origin).toString(),
     });
   };
 
   return (
     <footer className="contents">
-      <CardFooter className="justify-end">
+      <CardFooter className="justify-end gap-2">
+        <DownloadButton
+          href={element.src}
+          download={element.name}
+          fileSize={element.size}
+          className="pointer-events-auto relative z-1"
+        />
         <ShareButton className="pointer-events-auto relative z-1" variant="secondary" onClick={onClickShareButton} />
       </CardFooter>
     </footer>
@@ -58,7 +65,8 @@ export const ExplorerElementFile = ({
   href: string;
   style?: CSSProperties;
 }) => {
-  const footer = <FileFooter href={href} name={element.name} />;
+  // href opens the file viewer; element.src points directly to the downloadable file.
+  const footer = <FileFooter element={element} />;
 
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {
