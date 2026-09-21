@@ -95,6 +95,9 @@
     "attachments": "Вложения",
     "clearAll": "Очистить все"
   },
+  "FormPostAttachments": {
+    "fileSize": "{value} {unit}"
+  },
   "FormPostCreate": {
     "send": "Отправить",
     "couldNotSendPost": "Не удалось отправить пост"
@@ -123,9 +126,11 @@
     "disableShuffleTracks": "Выключить перемешивание треков"
   },
   "ShareButton": {
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "copied": "Скопировано!"
   },
   "DownloadButton": {
-    "downloadFile": "Скачать файл ({size})"
+    "downloadFile": "Скачать файл ({size})",
+    "fileSize": "{value} {unit}"
   }
 }

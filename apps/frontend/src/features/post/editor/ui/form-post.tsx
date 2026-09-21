@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/ds/button';
 import { Textarea } from '@/shared/ui/ds/textarea';
 import { type components } from '@/shared/api/openapi';
 import { FilePlus2, X } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import {
   type ComponentProps,
   type ComponentRef,
@@ -95,10 +95,15 @@ const SortableFormAttachment = ({
   }, [fileObjectUrl]);
 
   const source = fileOrAttachment instanceof File ? fileObjectUrl : fileOrAttachment.src;
+  const format = useFormatter();
+  const t = useTranslations('FormPostAttachments');
 
   if (!source) {
     return null;
   }
+
+  const { value, unit, maximumFractionDigits } = formatFileSize(fileOrAttachment.size);
+  const fileSize = t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit });
 
   return (
     <FormAttachment
@@ -107,7 +112,7 @@ const SortableFormAttachment = ({
       src={source}
       type={fileOrAttachmentToType(fileOrAttachment)}
       name={fileOrAttachment.name}
-      fileSize={formatFileSize(fileOrAttachment.size)}
+      fileSize={fileSize}
       onClickRemove={() => {
         onClickRemoveByIndex(index);
       }}

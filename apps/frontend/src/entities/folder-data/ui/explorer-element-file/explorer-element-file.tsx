@@ -33,11 +33,12 @@ const ExplorerElementFileUnknown = dynamic(() => {
   });
 });
 
-const FileFooter = ({ element }: { element: components['schemas']['FolderDataItemFile'] }) => {
+const FileFooter = ({ element, href }: { element: components['schemas']['FolderDataItemFile']; href: string }) => {
+  // element.src is the direct URL to the file itself; href is the route inside the app that opens the file viewer.
   const onClickShareButton = () => {
     return share({
       title: element.name,
-      url: new URL(element.src, globalThis.location.origin).toString(),
+      url: new URL(href, globalThis.location.origin).toString(),
     });
   };
 
@@ -66,7 +67,7 @@ export const ExplorerElementFile = ({
   style?: CSSProperties;
 }) => {
   // href opens the file viewer; element.src points directly to the downloadable file.
-  const footer = <FileFooter element={element} />;
+  const footer = <FileFooter element={element} href={href} />;
 
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {
