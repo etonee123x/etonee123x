@@ -2,14 +2,15 @@
 
 import { useCallback, useState, type ComponentProps } from 'react';
 import { useAudioPlayer } from '@/entities/audio-player';
-import { Check, Link, Pause, Play, Shuffle, SkipBack, SkipForward, X } from 'lucide-react';
+import { Pause, Play, Shuffle, SkipBack, SkipForward, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { BaseAlwaysScrollable } from '@/shared/ui/base-always-scrollable';
 import { Button } from '@/shared/ui/ds/button';
 import { Slider } from '@/shared/ui/ds/slider';
 import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { Temporal } from 'temporal-polyfill';
-import { useEventListener, useTimeoutFn } from '@reactuses/core';
+import { useEventListener } from '@reactuses/core';
+import { share, ShareButton } from '@/features/share';
 import { Toggle } from '@/shared/ui/ds/toggle';
 import { useIsTouchOnly } from '@/shared/hooks/use-is-touch-only';
 import { useHasMounted } from '@/shared/hooks/use-has-mounted';
@@ -242,38 +243,17 @@ const PlayerControls = () => {
   );
 };
 
-const PlayerCopyLinkButton = () => {
-  const t = useTranslations('ThePlayer');
+const PlayerShareButton = () => {
   const track = useAudioPlayer().track ?? throwError();
 
-  const [hasCopiedLink, setHasCopiedLink] = useState(false);
-  const [, startCopiedLinkTimeout] = useTimeoutFn(
-    () => {
-      setHasCopiedLink(false);
-    },
-    1500,
-    { immediate: false },
-  );
-
-  const onClickCopyLink = async () => {
-    const trackUrl = new URL('/explorer' + track.path, globalThis.location.origin);
-
-    await globalThis.navigator.clipboard.writeText(trackUrl.toString());
-    setHasCopiedLink(true);
-    startCopiedLinkTimeout();
+  const onClickShareButton = () => {
+    return share({
+      title: track.name,
+      url: new URL('/explorer' + track.path, globalThis.location.origin).toString(),
+    });
   };
 
-  return (
-    <Button
-      className="col-start-3"
-      aria-label={hasCopiedLink ? t('copied') : t('copyLink')}
-      size="icon-sm"
-      variant="ghost"
-      onClick={onClickCopyLink}
-    >
-      {hasCopiedLink ? <Check /> : <Link />}
-    </Button>
-  );
+  return <ShareButton className="col-start-3" size="icon-sm" variant="ghost" onClick={onClickShareButton} />;
 };
 
 const PlayerCoverButton = () => {
@@ -348,7 +328,7 @@ export const Player = () => {
         <BaseAlwaysScrollable className="col-start-2 [--base-always-scrollable--content--margin:0_auto]">
           <h2 className="text-lg">{track.name}</h2>
         </BaseAlwaysScrollable>
-        <PlayerCopyLinkButton />
+        <PlayerShareButton />
       </header>
 
       <PlayerSlider className="mb-4" />
