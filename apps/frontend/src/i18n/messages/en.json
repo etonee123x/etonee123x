@@ -94,6 +94,9 @@
     "attachments": "Attachments",
     "clearAll": "Clear all"
   },
+  "FormPostAttachments": {
+    "fileSize": "{value} {unit}"
+  },
   "FormPostCreate": {
     "send": "Send",
     "couldNotSendPost": "Failed to send post"
@@ -120,5 +123,13 @@
     "closePlayer": "Close player",
     "enableShuffleTracks": "Enable shuffle tracks",
     "disableShuffleTracks": "Disable shuffle tracks"
+  },
+  "ShareButton": {
+    "share": "Share",
+    "copied": "Copied!"
+  },
+  "DownloadButton": {
+    "downloadFile": "Download file ({size})",
+    "fileSize": "{value} {unit}"
   }
 }

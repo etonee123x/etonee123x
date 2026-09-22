@@ -141,7 +141,7 @@
     color-scheme: dark light;
 
     --vw: 100dvw;
-    --container-padding: calc((var(--vw) - min(80rem, calc(var(--vw) * 11 / 12))) / 2);
+    --container-padding: calc((var(--vw) - min(50rem, calc(var(--vw) * 11 / 12))) / 2);
   }
 
   body {

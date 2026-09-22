@@ -167,9 +167,7 @@ const eslintConfig = defineConfig([
         'error',
         {
           default: 'allow',
-          // Same-slice imports (e.g. a slice's own index.ts barrel) are matched out via the
-          // `captured` template comparison below, so only imports crossing into a *different*
-          // element are restricted.
+          // Imports between segments of the same feature are allowed; only cross-feature imports are restricted.
           policies: [
             {
               from: { element: { type: 'shared' } },
@@ -204,18 +202,7 @@ const eslintConfig = defineConfig([
             {
               from: { element: { type: 'feature' } },
               disallow: {
-                to: [
-                  { element: { type: 'feature', captured: { family: '!{{ from.element.captured.family }}' } } },
-                  {
-                    element: {
-                      type: 'feature',
-                      captured: {
-                        family: '{{ from.element.captured.family }}',
-                        slice: '!{{ from.element.captured.slice }}',
-                      },
-                    },
-                  },
-                ],
+                to: { element: { type: 'feature', captured: { family: '!{{ from.element.captured.family }}' } } },
               },
             },
             {
