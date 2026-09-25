@@ -50,7 +50,8 @@
   },
   "Gallery": {
     "previousSlide": "Предыдущий слайд",
-    "nextSlide": "Следующий слайд"
+    "nextSlide": "Следующий слайд",
+    "close": "Закрыть"
   },
   "Metadata": {
     "etonee123xSiteLogo": "Логотип сайта etonee123x"

@@ -1,74 +1,100 @@
 'use client';
 
-import { Dialog, DialogContent } from '@/shared/ui/ds/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/ds/dialog';
 import { useGalleryContext } from '@/shared/lib/gallery';
-import { useRef, type ComponentProps, type CSSProperties } from 'react';
+import { type ComponentProps } from 'react';
 import { Button } from '@/shared/ui/ds/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/ds/card';
 import { BaseAlwaysScrollable } from '@/shared/ui/base-always-scrollable';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react';
 import { GalleryItem } from './gallery-item';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/shared/utils/cn';
 
-const GalleryControls = ({ currentIndex }: { currentIndex: number }) => {
+// Place navigation controls in equal-width hit areas along the viewport bottom.
+const GALLERY_CONTROL_CLASS =
+  'absolute bottom-[calc(50%-50dvh)] h-(--gallery-control-height) w-[50dvw] rounded-none border-none bg-transparent text-foreground/80 shadow-none transition-colors hover:bg-black/10 focus-visible:bg-black/10';
+
+const GalleryControlPrevious = () => {
   const t = useTranslations('Gallery');
 
-  const { galleryItems, renderers, setGalleryItem } = useGalleryContext();
+  const { galleryItems, renderers, setGalleryItem, galleryItem } = useGalleryContext();
+
+  const currentIndex = galleryItem
+    ? galleryItems.findIndex((_galleryItem) => {
+        return _galleryItem.src === galleryItem.src;
+      })
+    : 0;
 
   const previousGalleryItem = galleryItems[currentIndex - 1];
-  const nextGalleryItem = galleryItems[currentIndex + 1];
 
   const previousControlRender = renderers?.previousControl;
+
+  return (
+    previousGalleryItem && (
+      <Button
+        size="lg"
+        variant="ghost"
+        className={cn(GALLERY_CONTROL_CLASS, 'inset-s-[calc(50%-50dvw)]')}
+        render={previousControlRender}
+        nativeButton={!previousControlRender}
+        aria-label={t('previousSlide')}
+        onClick={() => {
+          if (previousControlRender) {
+            return;
+          }
+
+          setGalleryItem(previousGalleryItem);
+        }}
+      >
+        <ChevronLeftIcon className="size-8" />
+      </Button>
+    )
+  );
+};
+
+const GalleryControlNext = () => {
+  const t = useTranslations('Gallery');
+
+  const { galleryItems, renderers, setGalleryItem, galleryItem } = useGalleryContext();
+
+  const currentIndex = galleryItem
+    ? galleryItems.findIndex((_galleryItem) => {
+        return _galleryItem.src === galleryItem.src;
+      })
+    : 0;
+
+  const nextGalleryItem = galleryItems[currentIndex + 1];
+
   const nextControlRender = renderers?.nextControl;
 
   return (
-    <>
-      {previousGalleryItem && (
-        <Button
-          size="lg"
-          variant="outline"
-          className="absolute inset-y-0 inset-s-0! my-auto rounded-full"
-          render={previousControlRender}
-          nativeButton={!previousControlRender}
-          aria-label={t('previousSlide')}
-          onClick={() => {
-            if (previousControlRender) {
-              return;
-            }
+    nextGalleryItem && (
+      <Button
+        size="lg"
+        variant="ghost"
+        autoFocus
+        className={cn(GALLERY_CONTROL_CLASS, 'inset-e-[calc(50%-50dvw)]')}
+        render={nextControlRender}
+        nativeButton={!nextControlRender}
+        aria-label={t('nextSlide')}
+        onClick={() => {
+          if (nextControlRender) {
+            return;
+          }
 
-            setGalleryItem(previousGalleryItem);
-          }}
-        >
-          <ChevronLeftIcon />
-        </Button>
-      )}
-      {nextGalleryItem && (
-        <Button
-          size="lg"
-          variant="outline"
-          className="absolute inset-y-0 inset-e-0! my-auto rounded-full"
-          render={nextControlRender}
-          nativeButton={!nextControlRender}
-          aria-label={t('nextSlide')}
-          onClick={() => {
-            if (nextControlRender) {
-              return;
-            }
-
-            setGalleryItem(nextGalleryItem);
-          }}
-        >
-          <ChevronRightIcon />
-        </Button>
-      )}
-    </>
+          setGalleryItem(nextGalleryItem);
+        }}
+      >
+        <ChevronRightIcon className="size-8" />
+      </Button>
+    )
   );
 };
 
 export const Gallery = () => {
-  const { galleryItem, setGalleryItem, onClose, shouldShowName, galleryItems } = useGalleryContext();
+  const t = useTranslations('Gallery');
 
-  const headerRef = useRef<HTMLDivElement>(null);
+  const { galleryItem, setGalleryItem, onClose, shouldShowName } = useGalleryContext();
 
   const onOpenChange: ComponentProps<typeof Dialog>['onOpenChange'] = (isOpen) => {
     if (isOpen) {
@@ -79,52 +105,37 @@ export const Gallery = () => {
     onClose.current?.();
   };
 
-  const currentIndex = galleryItem
-    ? galleryItems.findIndex((_galleryItem) => {
-        return _galleryItem.src === galleryItem.src;
-      })
-    : 0;
-  const mediaRatio = galleryItem ? galleryItem.width / galleryItem.height : 1;
-
-  // real header height (measured) + its flex gap, instead of a guessed constant
-  const headerSpace = shouldShowName ? `calc(1rem * 1.375 + var(--card-spacing))` : '0px';
-
-  const cardStyle = {
-    '--gallery-media-max-inline-size': 'calc(100cqw - var(--card-spacing) * 2)',
-    '--gallery-media-max-block-size': `max(0px, calc(100cqh - var(--card-spacing) * 2 - ${headerSpace}))`,
-  } as CSSProperties;
-
-  const mediaStyle = {
-    aspectRatio: `${galleryItem?.width ?? 1} / ${galleryItem?.height ?? 1}`,
-    width: `min(var(--gallery-media-max-inline-size), calc(var(--gallery-media-max-block-size) * ${mediaRatio}))`,
-  } satisfies CSSProperties;
-
   return (
     <Dialog open={Boolean(galleryItem)} onOpenChange={onOpenChange}>
       {galleryItem && (
-        <DialogContent className="border-primary border h-[calc(100dvh-2rem)] sm:max-w-none w-[calc(100dvw-2rem)]">
-          <div className="@container-size relative flex h-full min-h-0 w-full min-w-0 items-center justify-center">
-            <Card className="max-h-full max-w-full overflow-hidden" style={cardStyle}>
-              {shouldShowName && (
-                <div ref={headerRef}>
-                  <CardHeader>
-                    <CardTitle className="overflow-hidden">
-                      <BaseAlwaysScrollable className="w-full">{galleryItem.name}</BaseAlwaysScrollable>
-                    </CardTitle>
-                  </CardHeader>
-                </div>
-              )}
-              <CardContent className="overflow-hidden">
-                <div
-                  className="max-h-(--gallery-media-max-block-size) max-w-(--gallery-media-max-inline-size)"
-                  style={mediaStyle}
-                >
-                  <GalleryItem galleryItem={galleryItem} />
-                </div>
-              </CardContent>
-            </Card>
-            <GalleryControls currentIndex={currentIndex} />
-          </div>
+        <DialogContent
+          style={{
+            ['--aspect-ratio' as string]: galleryItem.width / galleryItem.height,
+            ['--gallery-control-height' as string]: '4rem',
+            ['--gallery-content-padding' as string]: '0.5rem',
+            ['--gallery-viewport-gap' as string]: '1rem',
+            ['--gallery-name-height' as string]: shouldShowName ? '3rem' : '0rem',
+            width: `min(calc(100dvw - 2 * var(--gallery-viewport-gap)), calc((100dvh - var(--gallery-name-height) - 2 * (var(--gallery-viewport-gap) + var(--gallery-control-height))) * var(--aspect-ratio) + 2 * var(--gallery-content-padding)))`,
+          }}
+          showCloseButton={!shouldShowName}
+          className="p-(--gallery-content-padding) border-primary border duration-0 sm:max-w-[unset]"
+        >
+          <GalleryControlPrevious />
+          {shouldShowName && (
+            <DialogHeader className="min-w-0 flex flex-row items-center">
+              <DialogTitle className="min-w-0 leading-normal">
+                <BaseAlwaysScrollable>{galleryItem.name}</BaseAlwaysScrollable>
+              </DialogTitle>
+
+              <DialogClose asChild>
+                <Button className="ms-auto" variant="ghost" size="icon-sm" aria-label={t('close')}>
+                  <XIcon />
+                </Button>
+              </DialogClose>
+            </DialogHeader>
+          )}
+          <GalleryItem galleryItem={galleryItem} className="aspect-(--aspect-ratio) rounded-md" />
+          <GalleryControlNext />
         </DialogContent>
       )}
     </Dialog>
