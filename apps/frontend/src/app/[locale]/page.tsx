@@ -19,10 +19,10 @@ export default async function Home() {
   const [explorerWidget, blogWidget] = await Promise.all([ExplorerWidget(), BlogWidget()]);
 
   return (
-    <section className="layout-container mb-4">
-      <h1 className="h1 mb-4">{t('indexPage')}</h1>
+    <section className="layout-container mb-6">
+      <h1 className="h1 mb-6">{t('indexPage')}</h1>
       {explorerWidget || blogWidget ? (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           {explorerWidget}
           {blogWidget}
         </div>

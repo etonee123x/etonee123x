@@ -89,8 +89,10 @@ export default async function RootLayout({ children, params }: Readonly<LayoutPr
       </head>
       <body className="flex flex-col min-h-dvh">
         <Providers>
-          <Header className="fixed top-0 w-full z-1 h-header-height" />
-          <main className="pt-header-height relative flex flex-col flex-1">{children}</main>
+          <Header />
+          <main className="pt-[calc(var(--spacing-header-height)+var(--spacing)*4)] relative flex flex-col flex-1">
+            {children}
+          </main>
           <Player />
           <Toaster />
           <Footer />
