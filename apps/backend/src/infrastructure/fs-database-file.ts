@@ -82,6 +82,7 @@ export class FsDatabaseFile<
 
   async writeEntityOrRow(id: string | undefined, entityOrRow: Entity | Row): Promise<Row> {
     await this.ensureInit();
+    console.log('inited?');
 
     const row = {
       ...entityOrRow,
@@ -92,16 +93,24 @@ export class FsDatabaseFile<
       },
     } as Row;
 
+    console.log({ row });
+
     const rows = await this.read();
+    console.log({ rows });
     if (isNil(id)) {
+      console.log('Writing new row', { rows: JSON.stringify([row, ...rows]), ptf: this.pathToFile });
       await nodeFsPromises.writeFile(this.pathToFile, JSON.stringify([row, ...rows]));
 
       return row;
     }
 
+    console.log('wtf?');
+
     const existingRowIndex = rows.findIndex((row) => {
       return row._meta.id === id;
     });
+
+    console.log({ existingRowIndex });
 
     if (existingRowIndex === -1) {
       throw new AppError(404, 'Row now found');
