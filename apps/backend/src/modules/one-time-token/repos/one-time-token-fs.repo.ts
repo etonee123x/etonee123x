@@ -6,9 +6,7 @@ export class OneTimeTokenFsRepo extends FsDatabaseRepo<{ tokenHash: string }> im
    * Persists the token digest as a database row.
    */
   async create(parameters: { tokenHash: string }): Promise<void> {
-    console.log('OneTimeTokenFsRepo.create.start');
     await this.fsDatabaseFile.writeEntityOrRow(undefined, parameters);
-    console.log('OneTimeTokenFsRepo.create.end');
   }
 
   /**
