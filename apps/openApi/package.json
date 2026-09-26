@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "preview": "npx @redocly/cli@latest preview",
+    "preview": "npx @redocly/cli@latest preview --port=4001",
     "lint": "npx @redocly/cli@latest lint openapi/openapi.yaml",
     "bundle": "npx @redocly/cli@latest bundle openapi/openapi.yaml -o dist/openapi.yaml"
   },

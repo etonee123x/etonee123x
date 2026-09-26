@@ -5,12 +5,11 @@ post:
     - Auth
   parameters:
     - in: query
-      name: jwt
+      name: ott
+      required: true
       schema:
         type: string
-      description: JWT token to set in auth cookie
-  security:
-    - cookieAuth: []
+      description: One-time token to exchange for an auth cookie
   responses:
     "200":
       description: OK

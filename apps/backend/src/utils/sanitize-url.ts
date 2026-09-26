@@ -1,7 +1,7 @@
 export const sanitizeUrl = (url: string): string => {
   try {
     const parsed = new URL(url, 'http://localhost');
-    const sensitiveKeys = new Set(['jwt', 'token', 'secret', 'password', 'key', 'auth']);
+    const sensitiveKeys = new Set(['jwt', 'ott', 'token', 'secret', 'password', 'key', 'auth']);
 
     const parameterNames: Array<string> = [];
     parsed.searchParams.forEach((...[, name]) => {

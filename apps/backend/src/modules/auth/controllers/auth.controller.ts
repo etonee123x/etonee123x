@@ -9,22 +9,21 @@ import { AuthService } from '../services/auth.service';
 export class AuthController extends Controller {
   private readonly authService: AuthService;
 
-  private login: RequestHandlerTyped<'/auth', 'post'> = (request, response) => {
-    const maybeJwt: unknown = request.query.jwt;
+  /**
+  Exchanges the required OTT query value for an auth cookie.
+  */
+  private login: RequestHandlerTyped<'/auth', 'post'> = async (request, response) => {
+    const ott = request.query.ott;
 
-    if (!maybeJwt) {
-      throw new AppError(400, 'JWT is not found in request query');
+    if (!ott) {
+      throw new AppError(400, 'OTT is not found in request query');
     }
 
-    if (typeof maybeJwt !== 'string') {
-      throw new AppError(400, 'JWT is not a string');
-    }
+    const { jwt, expires } = await this.authService.login({ ott });
 
-    const { expires } = this.authService.login({ jwt: maybeJwt });
+    response.cookie(KEY_COOKIE_JWT, jwt, { ...AuthService.cookieOptions, expires });
 
-    response.cookie(KEY_COOKIE_JWT, maybeJwt, { ...AuthService.cookieOptions, expires });
-
-    return response.send({ jwt: maybeJwt });
+    return response.send({ jwt });
   };
 
   private logout: RequestHandlerTyped<'/auth', 'delete'> = (...[, response]) => {

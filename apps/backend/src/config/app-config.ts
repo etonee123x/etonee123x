@@ -44,6 +44,14 @@ class AppConfig {
   */
   readonly secretKey: string;
   /**
+  Secret required to create one-time tokens.
+  */
+  readonly oneTimeTokenSecret: string;
+  /**
+  Maximum age of an unused one-time token in milliseconds.
+  */
+  readonly oneTimeTokenTtlMs: number;
+  /**
   Maximum JWT lifetime in minutes.
   */
   readonly authTokenMaxLifetimeMinutes: number;
@@ -102,6 +110,8 @@ class AppConfig {
 
     this.port = AppConfig.getPortFromEnvironment();
     this.secretKey = AppConfig.getRequiredEnvironmentVariable('SECRET_KEY');
+    this.oneTimeTokenSecret = AppConfig.getRequiredEnvironmentVariable('ONE_TIME_TOKEN_SECRET');
+    this.oneTimeTokenTtlMs = AppConfig.getEnvironmentVariablePositiveNumber('ONE_TIME_TOKEN_TTL_MS');
     this.authTokenMaxLifetimeMinutes = AppConfig.getEnvironmentVariablePositiveNumber(
       'AUTH_TOKEN_MAX_LIFETIME_MINUTES',
     );
