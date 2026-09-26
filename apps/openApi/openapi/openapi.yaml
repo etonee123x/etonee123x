@@ -20,10 +20,15 @@ tags:
     description: Posts CRUD
   - name: Auth
     description: Authentication
+  - name: Private
+    description: Private backend operations
 
 paths:
   /auth:
     $ref: paths/auth.yaml
+
+  /one-time-token:
+    $ref: paths/one-time-token.yaml
 
   /posts:
     $ref: paths/posts.yaml
@@ -41,3 +46,7 @@ components:
       type: apiKey
       in: cookie
       name: jwt
+    privateSecret:
+      type: apiKey
+      in: header
+      name: x-secret

@@ -56,6 +56,14 @@ export class FsDatabaseFile<
     return JSON.parse(file) as Array<Row>;
   }
 
+  /**
+   * Drops every row while keeping the database file initialized.
+   */
+  async drop(): Promise<void> {
+    await this.ensureInit();
+    await nodeFsPromises.writeFile(this.pathToFile, JSON.stringify([]));
+  }
+
   async readRowById(parameters: { id: string }): Promise<Row> {
     await this.ensureInit();
 

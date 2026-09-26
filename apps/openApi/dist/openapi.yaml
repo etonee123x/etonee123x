@@ -16,6 +16,8 @@ tags:
     description: Posts CRUD
   - name: Auth
     description: Authentication
+  - name: Private
+    description: Private backend operations
 paths:
   /auth:
     post:
@@ -25,12 +27,11 @@ paths:
         - Auth
       parameters:
         - in: query
-          name: jwt
+          name: ott
+          required: true
           schema:
             type: string
-          description: JWT token to set in auth cookie
-      security:
-        - cookieAuth: []
+          description: One-time token to exchange for an auth cookie
       responses:
         '200':
           description: OK
@@ -71,6 +72,32 @@ paths:
                       - null
                 required:
                   - jwt
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error401'
+  /one-time-token:
+    post:
+      operationId: createOneTimeToken
+      summary: Create one-time token
+      tags:
+        - Private
+      security:
+        - privateSecret: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                required:
+                  - token
         '401':
           description: Unauthorized
           content:
@@ -287,6 +314,10 @@ components:
       type: apiKey
       in: cookie
       name: jwt
+    privateSecret:
+      type: apiKey
+      in: header
+      name: x-secret
   schemas:
     Error401:
       type: object

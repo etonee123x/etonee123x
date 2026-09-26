@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "script:audio-covers:clear": "tsx src/scripts/audio-covers/clear",
+    "script:one-time-tokens:clear": "tsx src/scripts/one-time-tokens/clear",
     "script:file-inspector-cache:clear": "tsx src/scripts/file-inspector-cache/clear",
     "script:file-inspector-cache:warm-up-content": "tsx src/scripts/file-inspector-cache/warm-up-content",
     "script:generated-artifacts:clear": "npm run script:file-inspector-cache:clear && npm run script:audio-covers:clear",

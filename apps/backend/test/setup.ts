@@ -6,6 +6,8 @@ const infrastructureDirectory = path.resolve(backendDirectory, '..', '..', 'infr
 
 process.env.NODE_ENV = 'test';
 process.env.SECRET_KEY = 'test-secret';
+process.env.ONE_TIME_TOKEN_SECRET = 'test-one-time-token-secret';
+process.env.ONE_TIME_TOKEN_TTL_MS = '60000';
 process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES = '10';
 process.env.DATABASE_PATH = path.resolve(infrastructureDirectory, 'database');
 process.env.CONTENT_PATH = path.resolve(infrastructureDirectory, 'content');

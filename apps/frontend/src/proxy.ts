@@ -7,9 +7,9 @@ import { isNil } from '@/shared/utils/is-nil';
 const handleI18nRouting = createMiddleware(routing);
 
 export default async function proxy(request: NextRequest) {
-  const jwt = request.nextUrl.searchParams.get('jwt');
+  const ott = request.nextUrl.searchParams.get('ott');
 
-  if (isNil(jwt)) {
+  if (isNil(ott)) {
     const response = handleI18nRouting(request);
 
     const locale = response.headers.get('x-middleware-request-x-next-intl-locale');
@@ -19,13 +19,13 @@ export default async function proxy(request: NextRequest) {
   }
 
   const redirectUrl = request.nextUrl.clone();
-  redirectUrl.searchParams.delete('jwt');
+  redirectUrl.searchParams.delete('ott');
   const response = NextResponse.redirect(redirectUrl, 303);
 
   try {
-    const authResponse = await client['/auth'].POST({ params: { query: { jwt } } });
+    const authResponse = await client['/auth'].POST({ params: { query: { ott } } });
     if (authResponse.error) {
-      throw new Error('JWT authentication failed');
+      throw new Error('OTT authentication failed');
     }
 
     for (const cookie of authResponse.response.headers.getSetCookie()) {

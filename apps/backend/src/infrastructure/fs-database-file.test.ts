@@ -39,6 +39,20 @@ describe('FsDatabaseFile', () => {
     await expect(fs.access(path.join(databaseDirectory, 'rows.json'))).resolves.toBeUndefined();
   });
 
+  it('drops all rows and leaves an initialized empty database file', async () => {
+    const databaseDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'fs-db-'));
+    temporaryDirectories.push(databaseDirectory);
+    (appConfig as unknown as { databasePath: string }).databasePath = databaseDirectory;
+
+    const databaseFile = new FsDatabaseFile<Entity>({ fileName: 'rows.json' });
+    await databaseFile.writeEntityOrRow(undefined, { text: 'row' });
+
+    await databaseFile.drop();
+
+    await expect(databaseFile.read()).resolves.toEqual([]);
+    await expect(fs.access(path.join(databaseDirectory, 'rows.json'))).resolves.toBeUndefined();
+  });
+
   it('creates, updates, reads and deletes rows', async () => {
     const databaseDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'fs-db-'));
     temporaryDirectories.push(databaseDirectory);

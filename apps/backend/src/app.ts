@@ -11,11 +11,19 @@ import { PostsModule } from '@/modules/posts/posts.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { FolderDataModule } from '@/modules/folder-data/folder-data.module';
 import { HealthModule } from '@/modules/health/health.module';
+import { OneTimeTokenModule } from '@/modules/one-time-token/one-time-token.module';
 
 export const createApp = () => {
   const router = Express.Router();
+  const oneTimeTokenModule = new OneTimeTokenModule();
 
-  for (const module of [new PostsModule(), new AuthModule(), new FolderDataModule(), new HealthModule()]) {
+  for (const module of [
+    new PostsModule(),
+    new AuthModule({ oneTimeTokenService: oneTimeTokenModule.oneTimeTokenService }),
+    new FolderDataModule(),
+    new HealthModule(),
+    oneTimeTokenModule,
+  ]) {
     module.init(router);
   }
 

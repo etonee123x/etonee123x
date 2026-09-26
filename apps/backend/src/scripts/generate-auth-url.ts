@@ -1,15 +1,10 @@
 import 'dotenv/config';
-import jsonwebtoken from 'jsonwebtoken';
-import { KEY_COOKIE_JWT } from '@/constants/key-cookie-jwt';
-import { appConfig } from '@/config/app-config';
-const url = new URL('/en/blog', 'http://localhost:3000');
+import { OneTimeTokenModule } from '@/modules/one-time-token/one-time-token.module';
 
-url.searchParams.set(
-  KEY_COOKIE_JWT,
-  jsonwebtoken.sign({ isAdmin: true }, appConfig.secretKey, {
-    expiresIn: appConfig.authTokenMaxLifetimeMinutes * 60,
-  }),
-);
+const url = new URL('/en/blog', 'http://localhost:3000');
+const ott = await new OneTimeTokenModule().oneTimeTokenService.create();
+
+url.searchParams.set('ott', ott);
 
 // eslint-disable-next-line no-console
 console.log(url.href);

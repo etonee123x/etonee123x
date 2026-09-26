@@ -1,7 +1,26 @@
-import jsonWebToken from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppError } from '@/shared/errors/app.error';
+import { OneTimeTokenService } from '@/modules/one-time-token/services/one-time-token.service';
 import { AuthService } from './auth.service';
+
+/**
+Builds auth service with an OTT record timestamp for exchange tests.
+*/
+const createAuthService = (createdAt: number | null) => {
+  const oneTimeTokenService = new OneTimeTokenService({
+    oneTimeTokenRepo: {
+      create: async () => {},
+      consume: async () => {
+        return createdAt;
+      },
+      clearAll: async () => {
+        return 0;
+      },
+    },
+  });
+
+  return new AuthService({ oneTimeTokenService });
+};
 
 describe('AuthService', () => {
   const previousSecretKey = process.env.SECRET_KEY;
@@ -17,45 +36,24 @@ describe('AuthService', () => {
     process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES = previousMaxLifetime;
   });
 
-  const signJwt = (expiresIn: jsonWebToken.SignOptions['expiresIn']) => {
-    return jsonWebToken.sign({ role: 'admin' }, String(process.env.SECRET_KEY), { expiresIn });
-  };
+  it('exchanges a valid OTT for a short-lived admin JWT', async () => {
+    const service = createAuthService(Date.now());
+    const result = await service.login({ ott: 'valid-ott' });
+    const [header, payload] = result.jwt.split('.').slice(0, 2);
+    const decodedPayload = JSON.parse(Buffer.from(payload ?? '', 'base64url').toString()) as {
+      exp: number;
+      iat: number;
+      isAdmin: boolean;
+    };
 
-  it('returns expiration for a valid token', () => {
-    const service = new AuthService();
-    const jwt = signJwt('5m');
-
-    const result = service.login({ jwt });
-
+    expect(header).toBeTruthy();
     expect(result.expires).toBeInstanceOf(Date);
+    expect(decodedPayload.isAdmin).toBe(true);
+    expect(decodedPayload.exp - decodedPayload.iat).toBe(10 * 60);
   });
 
-  it('throws 401 for an invalid token', () => {
-    const service = new AuthService();
-
-    expect(() => {
-      return service.login({ jwt: 'broken-token' });
-    }).toThrow(AppError);
-  });
-
-  it('throws 401 when token lifetime exceeds the configured maximum', () => {
-    const service = new AuthService();
-    const jwt = signJwt('11m');
-
-    expect(() => {
-      return service.login({ jwt });
-    }).toThrow(AppError);
-  });
-
-  it('throws 401 when token has no issued-at time', () => {
-    const service = new AuthService();
-    const jwt = jsonWebToken.sign({ role: 'admin' }, String(process.env.SECRET_KEY), {
-      expiresIn: '5m',
-      noTimestamp: true,
-    });
-
-    expect(() => {
-      return service.login({ jwt });
-    }).toThrow(AppError);
+  it('rejects a missing, expired, or already consumed OTT', async () => {
+    await expect(createAuthService(null).login({ ott: 'used-ott' })).rejects.toBeInstanceOf(AppError);
+    await expect(createAuthService(Date.now() - 60_000).login({ ott: 'expired-ott' })).rejects.toBeInstanceOf(AppError);
   });
 });

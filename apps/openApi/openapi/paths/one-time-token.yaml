@@ -1,0 +1,25 @@
+post:
+  operationId: createOneTimeToken
+  summary: Create one-time token
+  tags:
+    - Private
+  security:
+    - privateSecret: []
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+            required:
+              - token
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Error401.yaml

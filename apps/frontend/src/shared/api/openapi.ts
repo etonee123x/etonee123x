@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/one-time-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create one-time token */
+        post: operations["createOneTimeToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/posts": {
         parameters: {
             query?: never;
@@ -220,9 +237,9 @@ export type $defs = Record<string, never>;
 export interface operations {
     createAuth: {
         parameters: {
-            query?: {
-                /** @description JWT token to set in auth cookie */
-                jwt?: string;
+            query: {
+                /** @description One-time token to exchange for an auth cookie */
+                ott: string;
             };
             header?: never;
             path?: never;
@@ -270,6 +287,37 @@ export interface operations {
                     "application/json": {
                         /** @enum {string|null} */
                         jwt: null;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error401"];
+                };
+            };
+        };
+    };
+    createOneTimeToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token: string;
                     };
                 };
             };
