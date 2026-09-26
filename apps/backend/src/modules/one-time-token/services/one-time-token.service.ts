@@ -27,9 +27,7 @@ export class OneTimeTokenService {
     const token = randomBytes(32).toString('base64url');
     const tokenHash = this.hashToken(token);
 
-    console.log('OneTimeTokenService.create.tokenHash');
     await this.oneTimeTokenRepo.create({ tokenHash });
-    console.log('OneTimeTokenService.create.end');
 
     return token;
   }
