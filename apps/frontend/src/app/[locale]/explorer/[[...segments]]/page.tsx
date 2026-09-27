@@ -56,6 +56,9 @@ export const generateMetadata = async ({
   const { segments = [], locale } = await params;
   const queryClient = new QueryClient();
   const folderData = await queryClient.query(getFolderDataQueryOptions('/' + segments.join('/')));
+  // API paths are URL-encoded already, matching explorer links.
+  const currentPath = folderData.file?.path ?? folderData.pathDirectory;
+  const explorerPath = currentPath === '/' ? '/explorer' : `/explorer${currentPath}`;
 
   const navigationItems = pathDirectoryToNavigationItems(folderData.pathDirectory);
   const folderName = (navigationItems.at(-1) ?? throwError()).text;
@@ -91,9 +94,9 @@ export const generateMetadata = async ({
 
   const defaults: Metadata = {
     title: folderData.file?.name ?? folderName,
-    alternates: getAlternates(segments.length > 0 ? `/explorer/${segments.join('/')}` : '/explorer', locale),
+    alternates: getAlternates(explorerPath, locale),
     openGraph: {
-      url: [`/${locale}/explorer`, segments.join('/')].join('/'),
+      url: `/${locale}${explorerPath}`,
       images,
       videos: video && {
         url: video.src,
