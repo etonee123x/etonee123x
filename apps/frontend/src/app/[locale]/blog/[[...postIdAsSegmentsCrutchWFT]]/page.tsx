@@ -139,7 +139,7 @@ export default async function Blog({ params }: Readonly<PageProps<'/[locale]/blo
         {isAdmin && (
           <>
             <FormPostCreate />
-            <Separator className="my-4" />
+            <Separator className="my-6" />
           </>
         )}
         {hasPosts ? (
