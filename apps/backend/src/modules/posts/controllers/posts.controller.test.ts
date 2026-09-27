@@ -53,14 +53,14 @@ describe('PostsController', () => {
     });
 
     await request(app)
-      .get('/posts?pageSize=3&filters[cursorPrevious]=200&filters[cursorNext]=100&filters[postId]=post-1')
+      .get('/posts?pageSize=3&filters[cursorPrevious]=200&filters[cursorNext]=100&filters[slug]=post-1')
       .expect(200);
 
     expect(getPosts).toHaveBeenCalledWith({
       pageSize: 3,
       cursorPrevious: '200',
       cursorNext: '100',
-      postId: 'post-1',
+      slug: 'post-1',
     });
   });
 
@@ -85,7 +85,7 @@ describe('PostsController', () => {
       pageSize: null,
       cursorPrevious: null,
       cursorNext: null,
-      postId: null,
+      slug: null,
     });
   });
 
@@ -185,7 +185,7 @@ describe('PostsController', () => {
       deletePostById: vi.fn(),
     });
 
-    const response = await request(app).get('/posts?filters[postId]=missing&pageSize=3').expect(404);
+    const response = await request(app).get('/posts?filters[slug]=missing&pageSize=3').expect(404);
 
     expect(response.body).toMatchObject({ statusCode: 404 });
   });

@@ -13,7 +13,7 @@ const postsGetValidationRules = [
   query('pageSize').optional().isInt({ min: 1, max: 100 }).withMessage('pageSize must be an integer between 1 and 100'),
   query('filters[cursorPrevious]').optional().isString().withMessage('cursorPrevious must be a string'),
   query('filters[cursorNext]').optional().isString().withMessage('cursorNext must be a string'),
-  query('filters[postId]').optional().isString().withMessage('postId must be a string'),
+  query('filters[slug]').optional().isString().withMessage('slug must be a string'),
   validateRequest,
 ];
 
@@ -36,9 +36,9 @@ export class PostsController extends Controller {
     const pageSize = pageSizeParameter === null ? null : Number(pageSizeParameter);
     const cursorPrevious = url.searchParams.get('filters[cursorPrevious]');
     const cursorNext = url.searchParams.get('filters[cursorNext]');
-    const postId = url.searchParams.get('filters[postId]');
+    const slug = url.searchParams.get('filters[slug]');
 
-    const posts = await this.postsService.getPosts({ cursorPrevious, cursorNext, postId, pageSize });
+    const posts = await this.postsService.getPosts({ cursorPrevious, cursorNext, slug, pageSize });
 
     response.send(posts);
   };

@@ -15,11 +15,11 @@ import { Post } from './post';
 
 export const EditablePost = ({
   post,
-  selectedPostId,
+  selectedPostSlug,
   onClickAttachment,
 }: {
   post: components['schemas']['PostResponse'];
-  selectedPostId: components['schemas']['PostResponse']['_meta']['id'] | null;
+  selectedPostSlug: components['schemas']['PostResponse']['slug'] | null;
   onClickAttachment: (attachment: components['schemas']['StoredFile']) => void;
 }) => {
   const t = useTranslations('Post');
@@ -104,7 +104,7 @@ export const EditablePost = ({
   return (
     <Post
       post={post}
-      selectedPostId={selectedPostId}
+      selectedPostSlug={selectedPostSlug}
       onClickAttachment={onClickAttachment}
       afterFooterButtons={adminActions}
       content={

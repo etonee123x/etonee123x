@@ -84,6 +84,7 @@
   "Post": {
     "post": "Post",
     "postWithContent": "Post «{content}»",
+    "editedAgo": "Edited {time}",
     "edit": "Edit",
     "delete": "Delete",
     "confirm": "Confirm",

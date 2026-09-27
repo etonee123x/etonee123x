@@ -23,19 +23,43 @@ export class PostsService {
   }
 
   /**
+   * Builds a date-based slug and appends the first available numeric suffix when needed.
+   */
+  private async getPostSlug(): Promise<string> {
+    const baseSlug = `post-${new Date().toISOString().slice(0, 10)}`;
+    const { rows } = await this.postsRepo.findAllPosts();
+    const slugs = new Set(
+      rows.map((post) => {
+        return post.slug;
+      }),
+    );
+
+    if (!slugs.has(baseSlug)) {
+      return baseSlug;
+    }
+
+    let suffix = 2;
+    while (slugs.has(`${baseSlug}-${suffix}`)) {
+      suffix += 1;
+    }
+
+    return `${baseSlug}-${suffix}`;
+  }
+
+  /**
    * Returns all posts or paginated slice based on pageSize and cursor parameters.
    */
   async getPosts(parameters: {
     cursorPrevious: string | null;
     cursorNext: string | null;
-    postId: string | null;
+    slug: string | null;
     pageSize: number | null;
   }): Promise<CursorPage<Post>> {
     const pageSize = parameters.pageSize ?? 10;
 
-    if (parameters.postId) {
-      const posts = await this.postsRepo.findPostsAroundPostId({
-        postId: parameters.postId,
+    if (parameters.slug) {
+      const posts = await this.postsRepo.findPostsAroundPostSlug({
+        slug: parameters.slug,
         pageSize,
       });
       if (!posts) {
@@ -89,6 +113,7 @@ export class PostsService {
       }
 
       return await this.postsRepo.createPost({
+        slug: await this.getPostSlug(),
         attachments: uploadedAttachments,
         text: parameters.text,
       });

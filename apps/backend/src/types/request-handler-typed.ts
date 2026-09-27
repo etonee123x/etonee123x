@@ -1,4 +1,6 @@
 import type { RequestHandler } from 'express';
+// выключаю, т.к. файл технический, создан как раз для того чтобы работать с OpenAPI типами
+// eslint-disable-next-line no-restricted-imports
 import type { paths } from '@/types/openapi';
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';

@@ -20,25 +20,25 @@ const FormPostCreate = dynamic(() => {
 
 export const generateMetadata = async ({
   params,
-}: Readonly<PageProps<'/[locale]/blog/[[...postIdAsSegmentsCrutchWFT]]'>>): Promise<Metadata> => {
+}: Readonly<PageProps<'/[locale]/blog/[[...postSlugAsSegmentsCrutchWFT]]'>>): Promise<Metadata> => {
   const t = await getTranslations('Blog');
 
-  const { postIdAsSegmentsCrutchWFT, locale } = await params;
-  if (postIdAsSegmentsCrutchWFT && postIdAsSegmentsCrutchWFT.length > 1) {
-    throw new Error('Invalid postIdAsSegmentsCrutchWFT length');
+  const { postSlugAsSegmentsCrutchWFT, locale } = await params;
+  if (postSlugAsSegmentsCrutchWFT && postSlugAsSegmentsCrutchWFT.length > 1) {
+    throw new Error('Invalid postSlugAsSegmentsCrutchWFT length');
   }
 
-  const postId = postIdAsSegmentsCrutchWFT?.[0] ?? null;
+  const postSlug = postSlugAsSegmentsCrutchWFT?.[0] ?? null;
 
   const defaults = {
     title: t('blog'),
-    alternates: getAlternates(postId ? `/blog/${postId}` : '/blog', locale),
+    alternates: getAlternates(postSlug ? `/blog/${postSlug}` : '/blog', locale),
     openGraph: {
-      url: postId ? `/${locale}/blog/${postId}` : `/${locale}/blog`,
+      url: postSlug ? `/${locale}/blog/${postSlug}` : `/${locale}/blog`,
     },
   };
 
-  if (isNil(postId)) {
+  if (isNil(postSlug)) {
     return {
       ...defaults,
       description: t('myBlog'),
@@ -46,14 +46,14 @@ export const generateMetadata = async ({
   }
 
   const queryClient = new QueryClient();
-  const posts = await queryClient.infiniteQuery(infiniteQueryOptionsGetPosts(postId));
+  const posts = await queryClient.infiniteQuery(infiniteQueryOptionsGetPosts(postSlug));
 
   const post = posts.pages
     .flatMap((page) => {
       return page.rows;
     })
     .find((post) => {
-      return post._meta.id === postId;
+      return post.slug === postSlug;
     });
 
   if (!post) {
@@ -107,17 +107,19 @@ export const generateMetadata = async ({
   };
 };
 
-export default async function Blog({ params }: Readonly<PageProps<'/[locale]/blog/[[...postIdAsSegmentsCrutchWFT]]'>>) {
-  const { postIdAsSegmentsCrutchWFT } = await params;
+export default async function Blog({
+  params,
+}: Readonly<PageProps<'/[locale]/blog/[[...postSlugAsSegmentsCrutchWFT]]'>>) {
+  const { postSlugAsSegmentsCrutchWFT } = await params;
 
-  if (postIdAsSegmentsCrutchWFT && postIdAsSegmentsCrutchWFT.length > 1) {
+  if (postSlugAsSegmentsCrutchWFT && postSlugAsSegmentsCrutchWFT.length > 1) {
     return notFound();
   }
 
-  const postId = postIdAsSegmentsCrutchWFT?.[0] ?? null;
+  const postSlug = postSlugAsSegmentsCrutchWFT?.[0] ?? null;
 
   const queryClient = new QueryClient();
-  const posts = await queryClient.infiniteQuery(infiniteQueryOptionsGetPosts(postId)).catch(() => {
+  const posts = await queryClient.infiniteQuery(infiniteQueryOptionsGetPosts(postSlug)).catch(() => {
     return undefined;
   });
   if (!posts) {
@@ -143,7 +145,7 @@ export default async function Blog({ params }: Readonly<PageProps<'/[locale]/blo
           </>
         )}
         {hasPosts ? (
-          <Posts selectedPostId={postId} />
+          <Posts selectedPostSlug={postSlug} />
         ) : (
           <Empty>
             <EmptyHeader>

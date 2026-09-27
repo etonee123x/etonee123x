@@ -6,7 +6,7 @@ import { isNil } from '@/shared/utils/is-nil';
 export const infiniteQueryKeyGetPosts = ['posts'] as const;
 
 export const infiniteQueryOptionsGetPosts = (
-  selectedPostId: components['schemas']['PostResponse']['_meta']['id'] | null,
+  selectedPostSlug: components['schemas']['PostResponse']['slug'] | null,
 ) => {
   return infiniteQueryOptions<
     Awaited<ReturnType<typeof getPosts>>,
@@ -38,11 +38,11 @@ export const infiniteQueryOptionsGetPosts = (
           }
         : undefined;
     },
-    initialPageParam: isNil(selectedPostId)
+    initialPageParam: isNil(selectedPostSlug)
       ? {}
       : {
           filters: {
-            postId: selectedPostId,
+            slug: selectedPostSlug,
           },
         },
   });

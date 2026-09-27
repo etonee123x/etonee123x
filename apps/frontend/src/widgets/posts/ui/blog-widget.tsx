@@ -21,7 +21,7 @@ export const BlogWidget = async () => {
       description={t('whatIWriteAbout')}
       link={{ href: '/blog', children: t('seeAllPosts', { count: postCount }) }}
     >
-      <Post post={newestPost} selectedPostId={null} />
+      <Post post={newestPost} selectedPostSlug={null} />
     </WidgetPanel>
   );
 };

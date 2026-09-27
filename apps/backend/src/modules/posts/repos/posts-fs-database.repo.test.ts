@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { appConfig } from '@/config/app-config';
+import { FsDatabaseFile } from '@/infrastructure/fs-database-file';
 import { PostsFsDatabaseRepo } from '@/modules/posts/repos/posts-fs-database.repo';
 import type { Post } from '@/modules/posts/entities/post.entity';
 
@@ -10,12 +15,42 @@ const buildPost = (id: string, createdAt: number): Post => {
       createdAt,
       updatedAt: createdAt,
     },
+    slug: `post-${createdAt}`,
     text: `post-${id}`,
     attachments: [],
   };
 };
 
 describe('PostsFsDatabaseRepo', () => {
+  let databaseDirectory: string | undefined;
+  const previousDatabasePath = appConfig.databasePath;
+
+  afterEach(async () => {
+    (appConfig as unknown as { databasePath: string }).databasePath = previousDatabasePath;
+
+    if (databaseDirectory) {
+      await fs.rm(databaseDirectory, { recursive: true, force: true });
+      databaseDirectory = undefined;
+    }
+  });
+
+  it('preserves createdAt when a post is updated', async () => {
+    databaseDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'posts-repo-'));
+    (appConfig as unknown as { databasePath: string }).databasePath = databaseDirectory;
+
+    const fsDatabaseFile = new FsDatabaseFile<Omit<Post, '_meta'>>({ fileName: 'posts.json' });
+    const repo = new PostsFsDatabaseRepo({ fsDatabaseFile });
+    const createdPost = await repo.createPost({ slug: 'post-1', text: 'original', attachments: [] });
+
+    await repo.updatePostById({ id: createdPost._meta.id, text: 'updated', attachments: [] });
+
+    const persistedPost = await repo.findPostById({ id: createdPost._meta.id });
+
+    // Editing post content must not change its original publication timestamp.
+    expect(persistedPost._meta.createdAt).toBe(createdPost._meta.createdAt);
+    expect(persistedPost.text).toBe('updated');
+  });
+
   it('findAllPosts returns all rows with null cursors', async () => {
     const posts = [buildPost('1', 500), buildPost('2', 400), buildPost('3', 300)];
     const fsDatabaseFile = {
@@ -49,7 +84,7 @@ describe('PostsFsDatabaseRepo', () => {
     expect(page._meta).toEqual({ total: 3, cursorPrevious: null, cursorNext: 300 });
   });
 
-  it('findPostsAroundPostId returns rows around target post', async () => {
+  it('findPostsAroundPostSlug returns rows around target post', async () => {
     const posts = [
       buildPost('1', 500),
       buildPost('2', 400),
@@ -63,7 +98,7 @@ describe('PostsFsDatabaseRepo', () => {
 
     const repo = new PostsFsDatabaseRepo({ fsDatabaseFile: fsDatabaseFile as never });
 
-    const page = await repo.findPostsAroundPostId({ postId: '3', pageSize: 2 });
+    const page = await repo.findPostsAroundPostSlug({ slug: 'post-300', pageSize: 2 });
 
     expect(page).not.toBeNull();
     expect(
@@ -74,14 +109,14 @@ describe('PostsFsDatabaseRepo', () => {
     expect(page?._meta).toEqual({ total: 5, cursorPrevious: null, cursorNext: 100 });
   });
 
-  it('findPostsAroundPostId returns null when post is not found', async () => {
+  it('findPostsAroundPostSlug returns null when post is not found', async () => {
     const fsDatabaseFile = {
       read: vi.fn().mockResolvedValue([buildPost('1', 500)]),
     };
 
     const repo = new PostsFsDatabaseRepo({ fsDatabaseFile: fsDatabaseFile as never });
 
-    await expect(repo.findPostsAroundPostId({ postId: '404', pageSize: 2 })).resolves.toBeNull();
+    await expect(repo.findPostsAroundPostSlug({ slug: 'missing', pageSize: 2 })).resolves.toBeNull();
   });
 
   it('findPostsByCursorPrevious returns backward page', async () => {
@@ -169,14 +204,24 @@ describe('PostsFsDatabaseRepo', () => {
     const repo = new PostsFsDatabaseRepo({ fsDatabaseFile: fsDatabaseFile as never });
 
     await expect(repo.findPostById({ id: '1' })).resolves.toEqual(existingPost);
-    await expect(repo.createPost({ text: 'new', attachments: [] })).resolves.toEqual(createdPost);
-    await expect(repo.updatePostById({ id: '1', text: 'upd', attachments: [] })).resolves.toEqual(updatedPost);
+    await expect(repo.createPost({ slug: 'post-new', text: 'new', attachments: [] })).resolves.toEqual(createdPost);
+    await expect(
+      repo.updatePostById({
+        id: '1',
+        text: 'upd',
+        attachments: [],
+      }),
+    ).resolves.toEqual(updatedPost);
     await expect(repo.deletePostById({ id: '1' })).resolves.toEqual(existingPost);
 
     expect(fsDatabaseFile.readRowById).toHaveBeenCalledWith({ id: '1' });
-    expect(fsDatabaseFile.writeEntityOrRow).toHaveBeenNthCalledWith(1, undefined, { text: 'new', attachments: [] });
+    expect(fsDatabaseFile.writeEntityOrRow).toHaveBeenNthCalledWith(1, undefined, {
+      slug: 'post-new',
+      text: 'new',
+      attachments: [],
+    });
     expect(fsDatabaseFile.writeEntityOrRow).toHaveBeenNthCalledWith(2, '1', {
-      id: '1',
+      ...existingPost,
       text: 'upd',
       attachments: [],
     });

@@ -1,12 +1,3 @@
-import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
+import type { components } from '@/types/openapi';
 
-export interface Post {
-  _meta: {
-    id: string;
-    createdAt: number;
-    updatedAt: number;
-  };
-
-  text: string;
-  attachments: Array<StoredFile>;
-}
+export type Post = components['schemas']['PostResponse'];

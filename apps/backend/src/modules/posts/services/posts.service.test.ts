@@ -13,7 +13,7 @@ import { PostsService } from '@/modules/posts/services/posts.service';
 interface MockedPostsRepo {
   findAllPosts: ReturnType<typeof vi.fn>;
   findFirstPosts: ReturnType<typeof vi.fn>;
-  findPostsAroundPostId: ReturnType<typeof vi.fn>;
+  findPostsAroundPostSlug: ReturnType<typeof vi.fn>;
   findPostsByCursorPrevious: ReturnType<typeof vi.fn>;
   findPostsByCursorNext: ReturnType<typeof vi.fn>;
   findPostById: ReturnType<typeof vi.fn>;
@@ -29,9 +29,9 @@ interface MockedFilesService {
 
 const buildService = () => {
   const postsRepo: MockedPostsRepo = {
-    findAllPosts: vi.fn(),
+    findAllPosts: vi.fn().mockResolvedValue({ rows: [] }),
     findFirstPosts: vi.fn(),
-    findPostsAroundPostId: vi.fn(),
+    findPostsAroundPostSlug: vi.fn(),
     findPostsByCursorPrevious: vi.fn(),
     findPostsByCursorNext: vi.fn(),
     findPostById: vi.fn(),
@@ -61,7 +61,7 @@ const buildFile = (fileName: string, content: string) => {
 };
 
 describe('PostsService', () => {
-  it('returns first page when no cursors or postId provided', async () => {
+  it('returns first page when no cursors or slug provided', async () => {
     const { service, postsRepo } = buildService();
     const page = {
       _meta: { cursorPrevious: null, cursorNext: null },
@@ -72,7 +72,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: null,
         pageSize: 10,
@@ -93,7 +93,7 @@ describe('PostsService', () => {
       service.getPosts({
         cursorPrevious: null,
         cursorNext: null,
-        postId: null,
+        slug: null,
         pageSize: null,
       }),
     ).resolves.toBe(page);
@@ -103,11 +103,11 @@ describe('PostsService', () => {
   it('throws 404 when around-post query returns null', async () => {
     const { service, postsRepo } = buildService();
 
-    postsRepo.findPostsAroundPostId.mockResolvedValue(null);
+    postsRepo.findPostsAroundPostSlug.mockResolvedValue(null);
 
     await expect(
       service.getPosts({
-        postId: 'missing',
+        slug: 'missing',
         cursorNext: null,
         cursorPrevious: null,
         pageSize: 10,
@@ -131,7 +131,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: '500',
         pageSize: 2,
@@ -140,7 +140,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: '300',
         cursorPrevious: null,
         pageSize: 2,
@@ -155,7 +155,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: '500',
         pageSize: 10,
@@ -170,7 +170,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: '300',
         cursorPrevious: null,
         pageSize: 10,
@@ -196,6 +196,7 @@ describe('PostsService', () => {
 
     await service.createPost({ text: 'post', files });
 
+    const slug = `post-${new Date().toISOString().slice(0, 10)}`;
     expect(filesService.upload).toHaveBeenNthCalledWith(1, {
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,
       buffer: fileA.buffer,
@@ -205,8 +206,23 @@ describe('PostsService', () => {
       buffer: fileB.buffer,
     });
     expect(postsRepo.createPost).toHaveBeenCalledWith({
+      slug,
       text: 'post',
       attachments: [attachmentA, attachmentB],
+    });
+  });
+
+  it('adds the first available suffix when a post slug already exists', async () => {
+    const { service, postsRepo } = buildService();
+    const baseSlug = `post-${new Date().toISOString().slice(0, 10)}`;
+    postsRepo.findAllPosts.mockResolvedValue({ rows: [{ slug: baseSlug }, { slug: `${baseSlug}-2` }] });
+
+    await service.createPost({ text: 'post', files: [] });
+
+    expect(postsRepo.createPost).toHaveBeenCalledWith({
+      slug: `${baseSlug}-3`,
+      text: 'post',
+      attachments: [],
     });
   });
 
@@ -216,21 +232,21 @@ describe('PostsService', () => {
     const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3' };
     const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3' };
     const newAttachment = { src: '/uploads/new.mp3', name: 'new.mp3' };
-
-    postsRepo.findPostById.mockResolvedValue({
-      attachments: [oldKeep, oldDrop],
-    });
+    const updatedPost = { id: 'updated' };
+    postsRepo.findPostById.mockResolvedValue({ attachments: [oldKeep, oldDrop] });
     filesService.upload.mockResolvedValue(newAttachment);
-    postsRepo.updatePostById.mockResolvedValue({ id: 'updated' });
+    postsRepo.updatePostById.mockResolvedValue(updatedPost);
 
     const attachmentsInput = [oldKeep, null];
 
-    await service.updatePostById({
-      id: 'post-1',
-      text: 'updated text',
-      attachments: attachmentsInput as never,
-      files: [buildFile('new.mp3', 'N')],
-    });
+    await expect(
+      service.updatePostById({
+        id: 'post-1',
+        text: 'updated text',
+        attachments: attachmentsInput as never,
+        files: [buildFile('new.mp3', 'N')],
+      }),
+    ).resolves.toBe(updatedPost);
 
     expect(filesService.upload).toHaveBeenCalledWith({
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,
