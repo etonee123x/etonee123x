@@ -10,6 +10,8 @@ export const generateMetadata = async ({ params }: Readonly<PageProps<'/[locale]
 
   return {
     title: `${t('indexPage')} | etonee123x`,
+    // Describe the blog and personal media archive shown on the homepage.
+    description: t('myPersonalWebsite'),
     alternates: getAlternates('', locale),
   };
 };
