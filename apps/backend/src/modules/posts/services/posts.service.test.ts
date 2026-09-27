@@ -9,6 +9,7 @@ vi.mock('file-type', () => {
 import { fileTypeFromBuffer } from 'file-type';
 import { AppError } from '@/shared/errors/app.error';
 import { PostsService } from '@/modules/posts/services/posts.service';
+import { PostSlugGenerator } from '@/modules/posts/services/post-slug-generator';
 
 interface MockedPostsRepo {
   findAllPosts: ReturnType<typeof vi.fn>;
@@ -44,13 +45,15 @@ const buildService = () => {
     upload: vi.fn().mockResolvedValue({ src: '/test', name: 'test' }),
     delete: vi.fn().mockResolvedValue(undefined),
   };
+  const postSlugGenerator = new PostSlugGenerator();
 
   const service = new PostsService({
     postsRepo: postsRepo as never,
     filesService: filesService as never,
+    postSlugGenerator,
   });
 
-  return { service, postsRepo, filesService };
+  return { service, postsRepo, filesService, postSlugGenerator };
 };
 
 const buildFile = (fileName: string, content: string) => {
@@ -196,7 +199,6 @@ describe('PostsService', () => {
 
     await service.createPost({ text: 'post', files });
 
-    const slug = `post-${new Date().toISOString().slice(0, 10)}`;
     expect(filesService.upload).toHaveBeenNthCalledWith(1, {
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,
       buffer: fileA.buffer,
@@ -206,22 +208,28 @@ describe('PostsService', () => {
       buffer: fileB.buffer,
     });
     expect(postsRepo.createPost).toHaveBeenCalledWith({
-      slug,
+      slug: expect.any(String) as never,
       text: 'post',
       attachments: [attachmentA, attachmentB],
     });
   });
 
-  it('adds the first available suffix when a post slug already exists', async () => {
-    const { service, postsRepo } = buildService();
-    const baseSlug = `post-${new Date().toISOString().slice(0, 10)}`;
-    postsRepo.findAllPosts.mockResolvedValue({ rows: [{ slug: baseSlug }, { slug: `${baseSlug}-2` }] });
+  it('passes post text and existing slugs to generator and saves generated slug', async () => {
+    const { service, postsRepo, postSlugGenerator } = buildService();
+    const generateSpy = vi.spyOn(postSlugGenerator, 'generate').mockReturnValue('generated-slug');
+    const existingPosts = [{ slug: 'already-exists' }];
+    postsRepo.findAllPosts.mockResolvedValue({ rows: existingPosts });
 
-    await service.createPost({ text: 'post', files: [] });
+    await service.createPost({ text: 'new post text', files: [] });
 
+    expect(generateSpy).toHaveBeenCalledWith({
+      text: 'new post text',
+      currentDate: expect.any(Date) as never,
+      existingSlugs: ['already-exists'],
+    });
     expect(postsRepo.createPost).toHaveBeenCalledWith({
-      slug: `${baseSlug}-3`,
-      text: 'post',
+      slug: 'generated-slug',
+      text: 'new post text',
       attachments: [],
     });
   });

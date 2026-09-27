@@ -7,14 +7,17 @@ import type { Post } from '../entities/post.entity';
 import type { FilesService } from '@/infrastructure/files/services/files.service';
 import { AppError } from '@/shared/errors/app.error';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
+import type { PostSlugGenerator } from './post-slug-generator';
 
 export class PostsService {
   private readonly postsRepo: PostsRepo;
   private readonly filesService: FilesService;
+  private readonly postSlugGenerator: PostSlugGenerator;
 
-  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService }) {
+  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService; postSlugGenerator: PostSlugGenerator }) {
     this.postsRepo = parameters.postsRepo;
     this.filesService = parameters.filesService;
+    this.postSlugGenerator = parameters.postSlugGenerator;
   }
 
   private async getKeyByFile(file: Express.Multer.File) {
@@ -23,27 +26,17 @@ export class PostsService {
   }
 
   /**
-   * Builds a date-based slug and appends the first available numeric suffix when needed.
+   * Delegates unique slug generation using slugs already stored in the database.
    */
-  private async getPostSlug(): Promise<string> {
-    const baseSlug = `post-${new Date().toISOString().slice(0, 10)}`;
+  private async getPostSlug(text: string): Promise<string> {
     const { rows } = await this.postsRepo.findAllPosts();
-    const slugs = new Set(
-      rows.map((post) => {
+    return this.postSlugGenerator.generate({
+      text,
+      currentDate: new Date(),
+      existingSlugs: rows.map((post) => {
         return post.slug;
       }),
-    );
-
-    if (!slugs.has(baseSlug)) {
-      return baseSlug;
-    }
-
-    let suffix = 2;
-    while (slugs.has(`${baseSlug}-${suffix}`)) {
-      suffix += 1;
-    }
-
-    return `${baseSlug}-${suffix}`;
+    });
   }
 
   /**
@@ -113,7 +106,7 @@ export class PostsService {
       }
 
       return await this.postsRepo.createPost({
-        slug: await this.getPostSlug(),
+        slug: await this.getPostSlug(parameters.text),
         attachments: uploadedAttachments,
         text: parameters.text,
       });

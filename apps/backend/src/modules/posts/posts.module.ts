@@ -14,6 +14,7 @@ import { FileInspectorCacheService } from '@/infrastructure/files/services/file-
 import { FsDatabaseFile } from '@/infrastructure/fs-database-file';
 import type { Post } from './entities/post.entity';
 import { appConfig } from '@/config/app-config';
+import { PostSlugGenerator } from './services/post-slug-generator';
 
 export class PostsModule extends Module {
   constructor() {
@@ -54,7 +55,13 @@ export class PostsModule extends Module {
       fileInspectorCacheService,
     });
 
-    const postsService = new PostsService({ postsRepo, filesService });
+    const postSlugGenerator = new PostSlugGenerator();
+
+    const postsService = new PostsService({
+      postsRepo,
+      filesService,
+      postSlugGenerator,
+    });
 
     const postsController = new PostsController({ postsService });
 

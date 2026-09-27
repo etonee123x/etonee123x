@@ -129,6 +129,16 @@ export default async function Blog({
   const hasPosts = posts.pages.some((page) => {
     return page.rows.length > 0;
   });
+  const selectedPost = isNil(postSlug)
+    ? undefined
+    : posts.pages
+        .flatMap((page) => {
+          return page.rows;
+        })
+        .find((post) => {
+          return post.slug === postSlug;
+        });
+  const selectedPostDescription = selectedPost ? getPostDescription(selectedPost.text) : '';
 
   const isAdmin = await getIsAdmin();
 
@@ -137,7 +147,11 @@ export default async function Blog({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <section className="layout-container mb-6">
-        <h1 className="h1 mb-6">{t('blog')}</h1>
+        {/* Keep Blog as the page heading and add selected-post context for screen readers. */}
+        <h1 className="h1 mb-6">
+          {t('blog')}
+          {selectedPostDescription && <span className="sr-only"> {selectedPostDescription}</span>}
+        </h1>
         {isAdmin && (
           <>
             <FormPostCreate />
