@@ -35,7 +35,8 @@
     "multer": "^2.2.0",
     "music-metadata": "^11.15.0",
     "pg": "^8.23.0",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

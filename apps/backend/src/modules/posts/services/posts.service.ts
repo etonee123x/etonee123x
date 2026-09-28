@@ -7,14 +7,17 @@ import type { Post } from '../entities/post.entity';
 import type { FilesService } from '@/infrastructure/files/services/files.service';
 import { AppError } from '@/shared/errors/app.error';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
+import type { PostSlugGenerator } from './post-slug-generator';
 
 export class PostsService {
   private readonly postsRepo: PostsRepo;
   private readonly filesService: FilesService;
+  private readonly postSlugGenerator: PostSlugGenerator;
 
-  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService }) {
+  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService; postSlugGenerator: PostSlugGenerator }) {
     this.postsRepo = parameters.postsRepo;
     this.filesService = parameters.filesService;
+    this.postSlugGenerator = parameters.postSlugGenerator;
   }
 
   private async getKeyByFile(file: Express.Multer.File) {
@@ -23,19 +26,33 @@ export class PostsService {
   }
 
   /**
+   * Delegates unique slug generation using slugs already stored in the database.
+   */
+  private async getPostSlug(text: string): Promise<string> {
+    const { rows } = await this.postsRepo.findAllPosts();
+    return this.postSlugGenerator.generate({
+      text,
+      currentDate: new Date(),
+      existingSlugs: rows.map((post) => {
+        return post.slug;
+      }),
+    });
+  }
+
+  /**
    * Returns all posts or paginated slice based on pageSize and cursor parameters.
    */
   async getPosts(parameters: {
     cursorPrevious: string | null;
     cursorNext: string | null;
-    postId: string | null;
+    slug: string | null;
     pageSize: number | null;
   }): Promise<CursorPage<Post>> {
     const pageSize = parameters.pageSize ?? 10;
 
-    if (parameters.postId) {
-      const posts = await this.postsRepo.findPostsAroundPostId({
-        postId: parameters.postId,
+    if (parameters.slug) {
+      const posts = await this.postsRepo.findPostsAroundPostSlug({
+        slug: parameters.slug,
         pageSize,
       });
       if (!posts) {
@@ -89,6 +106,7 @@ export class PostsService {
       }
 
       return await this.postsRepo.createPost({
+        slug: await this.getPostSlug(parameters.text),
         attachments: uploadedAttachments,
         text: parameters.text,
       });

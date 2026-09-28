@@ -9,8 +9,7 @@ import { useGalleryContext } from '@/shared/lib/gallery';
 import { BaseHtml } from '@/shared/ui/base-html';
 import { Card, CardContent, CardFooter } from '@/shared/ui/ds/card';
 import { Separator } from '@/shared/ui/ds/separator';
-import { Edit2 } from 'lucide-react';
-import { useFormatter, useNow, useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/utils/cn';
 import { PostAttachment } from './post-attachment/post-attachment';
@@ -33,13 +32,13 @@ const toGalleryItem = (
 
 export const Post = ({
   post,
-  selectedPostId,
+  selectedPostSlug,
   onClickAttachment: _onClickAttachment,
   content,
   afterFooterButtons,
 }: {
   post: components['schemas']['PostResponse'];
-  selectedPostId: components['schemas']['PostResponse']['_meta']['id'] | null;
+  selectedPostSlug: components['schemas']['PostResponse']['slug'] | null;
   onClickAttachment?: (attachment: components['schemas']['StoredFile']) => void;
   content?: ReactNode;
   afterFooterButtons?: ReactNode;
@@ -47,11 +46,12 @@ export const Post = ({
   const t = useTranslations('Post');
 
   const { relativeTime } = useFormatter();
-  const now = useNow();
+  // eslint-disable-next-line react-hooks/purity -- Relative timestamps need the current clock on each render.
+  const now = Date.now();
 
   const { open, setOnClose } = useGalleryContext();
 
-  const isSelected = selectedPostId === post._meta.id;
+  const isSelected = selectedPostSlug === post.slug;
 
   const descriptionContent = getPostDescription(post.text);
   const description = descriptionContent ? t('postWithContent', { content: descriptionContent }) : t('post');
@@ -79,7 +79,7 @@ export const Post = ({
   const onClickShareButton = () => {
     return share({
       title: globalThis.document.title,
-      url: new URL(`/blog/${post._meta.id}`, globalThis.location.origin).toString(),
+      url: new URL(`/blog/${post.slug}`, globalThis.location.origin).toString(),
       text: post.text || undefined,
     });
   };
@@ -87,7 +87,7 @@ export const Post = ({
   return (
     <article className="contents" aria-label={description}>
       <Card
-        data-id={post._meta.id}
+        data-slug={post.slug}
         className={cn(
           isSelected &&
             "relative animate-post-highlight after:content-[''] after:absolute after:-inset-1.5 after:rounded-xl after:bg-primary/60 after:animate-post-fade after:-z-10",
@@ -114,9 +114,10 @@ export const Post = ({
         </CardContent>
         <footer className="contents">
           <CardFooter className="justify-between gap-2">
+            {/* TODO: Replace relative post timestamps with absolute localized dates. */}
             <Link
-              href={`/blog/${post._meta.id}`}
-              className="hover:underline flex items-center gap-1 me-auto text-muted-foreground"
+              href={`/blog/${post.slug}`}
+              className="hover:underline me-auto flex flex-col text-muted-foreground"
               target="_blank"
             >
               <time
@@ -126,8 +127,18 @@ export const Post = ({
                 suppressHydrationWarning
               >
                 {relativeTime(post._meta.createdAt, now)}
-                {post._meta.updatedAt !== post._meta.createdAt && <Edit2 className="size-3.5" />}
               </time>
+              {post._meta.updatedAt !== post._meta.createdAt && (
+                // Keep edit time separate from publication time for semantic datetime values.
+                <time
+                  dateTime={new Date(post._meta.updatedAt).toISOString()}
+                  title={new Date(post._meta.updatedAt).toISOString()}
+                  className="inline-flex items-center"
+                  suppressHydrationWarning
+                >
+                  {t('editedAgo', { time: relativeTime(post._meta.updatedAt, now) })}
+                </time>
+              )}
             </Link>
             <ShareButton onClick={onClickShareButton} variant="secondary" />
             {afterFooterButtons && (

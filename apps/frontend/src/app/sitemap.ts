@@ -37,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...buildEntries('/blog', now),
     ...buildEntries('/explorer', now),
     ...posts.rows.flatMap((post) => {
-      return buildEntries(`/blog/${post._meta.id}`, new Date(post._meta.updatedAt));
+      return buildEntries(`/blog/${post.slug}`, new Date(post._meta.updatedAt));
     }),
     ...folderDataPaths.flatMap((folderDataPath) => {
       return buildEntries(`/explorer${folderDataPath.path}`, new Date(folderDataPath.updatedAt));

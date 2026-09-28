@@ -9,11 +9,12 @@ vi.mock('file-type', () => {
 import { fileTypeFromBuffer } from 'file-type';
 import { AppError } from '@/shared/errors/app.error';
 import { PostsService } from '@/modules/posts/services/posts.service';
+import { PostSlugGenerator } from '@/modules/posts/services/post-slug-generator';
 
 interface MockedPostsRepo {
   findAllPosts: ReturnType<typeof vi.fn>;
   findFirstPosts: ReturnType<typeof vi.fn>;
-  findPostsAroundPostId: ReturnType<typeof vi.fn>;
+  findPostsAroundPostSlug: ReturnType<typeof vi.fn>;
   findPostsByCursorPrevious: ReturnType<typeof vi.fn>;
   findPostsByCursorNext: ReturnType<typeof vi.fn>;
   findPostById: ReturnType<typeof vi.fn>;
@@ -29,9 +30,9 @@ interface MockedFilesService {
 
 const buildService = () => {
   const postsRepo: MockedPostsRepo = {
-    findAllPosts: vi.fn(),
+    findAllPosts: vi.fn().mockResolvedValue({ rows: [] }),
     findFirstPosts: vi.fn(),
-    findPostsAroundPostId: vi.fn(),
+    findPostsAroundPostSlug: vi.fn(),
     findPostsByCursorPrevious: vi.fn(),
     findPostsByCursorNext: vi.fn(),
     findPostById: vi.fn(),
@@ -44,13 +45,15 @@ const buildService = () => {
     upload: vi.fn().mockResolvedValue({ src: '/test', name: 'test' }),
     delete: vi.fn().mockResolvedValue(undefined),
   };
+  const postSlugGenerator = new PostSlugGenerator();
 
   const service = new PostsService({
     postsRepo: postsRepo as never,
     filesService: filesService as never,
+    postSlugGenerator,
   });
 
-  return { service, postsRepo, filesService };
+  return { service, postsRepo, filesService, postSlugGenerator };
 };
 
 const buildFile = (fileName: string, content: string) => {
@@ -61,7 +64,7 @@ const buildFile = (fileName: string, content: string) => {
 };
 
 describe('PostsService', () => {
-  it('returns first page when no cursors or postId provided', async () => {
+  it('returns first page when no cursors or slug provided', async () => {
     const { service, postsRepo } = buildService();
     const page = {
       _meta: { cursorPrevious: null, cursorNext: null },
@@ -72,7 +75,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: null,
         pageSize: 10,
@@ -93,7 +96,7 @@ describe('PostsService', () => {
       service.getPosts({
         cursorPrevious: null,
         cursorNext: null,
-        postId: null,
+        slug: null,
         pageSize: null,
       }),
     ).resolves.toBe(page);
@@ -103,11 +106,11 @@ describe('PostsService', () => {
   it('throws 404 when around-post query returns null', async () => {
     const { service, postsRepo } = buildService();
 
-    postsRepo.findPostsAroundPostId.mockResolvedValue(null);
+    postsRepo.findPostsAroundPostSlug.mockResolvedValue(null);
 
     await expect(
       service.getPosts({
-        postId: 'missing',
+        slug: 'missing',
         cursorNext: null,
         cursorPrevious: null,
         pageSize: 10,
@@ -131,7 +134,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: '500',
         pageSize: 2,
@@ -140,7 +143,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: '300',
         cursorPrevious: null,
         pageSize: 2,
@@ -155,7 +158,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: null,
         cursorPrevious: '500',
         pageSize: 10,
@@ -170,7 +173,7 @@ describe('PostsService', () => {
 
     await expect(
       service.getPosts({
-        postId: null,
+        slug: null,
         cursorNext: '300',
         cursorPrevious: null,
         pageSize: 10,
@@ -205,8 +208,29 @@ describe('PostsService', () => {
       buffer: fileB.buffer,
     });
     expect(postsRepo.createPost).toHaveBeenCalledWith({
+      slug: expect.any(String) as never,
       text: 'post',
       attachments: [attachmentA, attachmentB],
+    });
+  });
+
+  it('passes post text and existing slugs to generator and saves generated slug', async () => {
+    const { service, postsRepo, postSlugGenerator } = buildService();
+    const generateSpy = vi.spyOn(postSlugGenerator, 'generate').mockReturnValue('generated-slug');
+    const existingPosts = [{ slug: 'already-exists' }];
+    postsRepo.findAllPosts.mockResolvedValue({ rows: existingPosts });
+
+    await service.createPost({ text: 'new post text', files: [] });
+
+    expect(generateSpy).toHaveBeenCalledWith({
+      text: 'new post text',
+      currentDate: expect.any(Date) as never,
+      existingSlugs: ['already-exists'],
+    });
+    expect(postsRepo.createPost).toHaveBeenCalledWith({
+      slug: 'generated-slug',
+      text: 'new post text',
+      attachments: [],
     });
   });
 
@@ -216,21 +240,21 @@ describe('PostsService', () => {
     const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3' };
     const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3' };
     const newAttachment = { src: '/uploads/new.mp3', name: 'new.mp3' };
-
-    postsRepo.findPostById.mockResolvedValue({
-      attachments: [oldKeep, oldDrop],
-    });
+    const updatedPost = { id: 'updated' };
+    postsRepo.findPostById.mockResolvedValue({ attachments: [oldKeep, oldDrop] });
     filesService.upload.mockResolvedValue(newAttachment);
-    postsRepo.updatePostById.mockResolvedValue({ id: 'updated' });
+    postsRepo.updatePostById.mockResolvedValue(updatedPost);
 
     const attachmentsInput = [oldKeep, null];
 
-    await service.updatePostById({
-      id: 'post-1',
-      text: 'updated text',
-      attachments: attachmentsInput as never,
-      files: [buildFile('new.mp3', 'N')],
-    });
+    await expect(
+      service.updatePostById({
+        id: 'post-1',
+        text: 'updated text',
+        attachments: attachmentsInput as never,
+        files: [buildFile('new.mp3', 'N')],
+      }),
+    ).resolves.toBe(updatedPost);
 
     expect(filesService.upload).toHaveBeenCalledWith({
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,

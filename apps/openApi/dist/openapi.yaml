@@ -128,9 +128,9 @@ paths:
                     minimum: 0
                     description: Cursor for the previous page
               - properties:
-                  postId:
+                  slug:
                     type: string
-                    description: ID of the post
+                    description: Slug of the post
         - in: query
           name: pageSize
           required: false
@@ -510,6 +510,8 @@ components:
             - id
             - createdAt
             - updatedAt
+        slug:
+          type: string
         text:
           type: string
         attachments:
@@ -518,6 +520,7 @@ components:
             $ref: '#/components/schemas/StoredFile'
       required:
         - _meta
+        - slug
         - text
         - attachments
     PostsResponse:

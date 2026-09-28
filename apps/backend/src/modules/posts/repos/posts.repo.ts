@@ -10,7 +10,7 @@ export interface PostsRepo {
 
   findFirstPosts: (parameters: { pageSize: number }) => Promise<CursorPage<Post>>;
 
-  findPostsAroundPostId: (parameters: { postId: string; pageSize: number }) => Promise<CursorPage<Post> | null>;
+  findPostsAroundPostSlug: (parameters: { slug: string; pageSize: number }) => Promise<CursorPage<Post> | null>;
 
   findPostsByCursorPrevious: (parameters: {
     cursorPrevious: string;
@@ -21,7 +21,7 @@ export interface PostsRepo {
 
   findPostById: (parameters: { id: string }) => Promise<Post>;
 
-  createPost: (parameters: { text: string; attachments: Array<StoredFile> }) => Promise<Post>;
+  createPost: (parameters: { slug: string; text: string; attachments: Array<StoredFile> }) => Promise<Post>;
 
   updatePostById: (parameters: { id: string; text: string; attachments: Array<StoredFile> }) => Promise<Post>;
 

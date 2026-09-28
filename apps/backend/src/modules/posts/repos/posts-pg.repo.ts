@@ -14,7 +14,7 @@ export class PostsPgRepo extends PgRepo implements PostsRepo {
     throw new Error('Not implemented');
   }
 
-  async findPostsAroundPostId(parameters: { postId: string; pageSize: number }): Promise<CursorPage<Post> | null> {
+  async findPostsAroundPostSlug(parameters: { slug: string; pageSize: number }): Promise<CursorPage<Post> | null> {
     throw new Error('Not implemented');
   }
 
@@ -33,7 +33,7 @@ export class PostsPgRepo extends PgRepo implements PostsRepo {
     throw new Error('Not implemented');
   }
 
-  async createPost(parameters: { text: string; attachments: Array<StoredFile> }): Promise<Post> {
+  async createPost(parameters: { slug: string; text: string; attachments: Array<StoredFile> }): Promise<Post> {
     throw new Error('Not implemented');
   }
 

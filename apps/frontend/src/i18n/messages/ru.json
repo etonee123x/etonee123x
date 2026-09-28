@@ -84,6 +84,7 @@
   "Post": {
     "post": "Пост",
     "postWithContent": "Пост «{content}»",
+    "editedAgo": "Изменено {time}",
     "edit": "Редактировать",
     "delete": "Удалить",
     "share": "Поделиться",

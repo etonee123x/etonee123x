@@ -171,6 +171,7 @@ export interface components {
                 createdAt: number;
                 updatedAt: number;
             };
+            slug: string;
             text: string;
             attachments: components["schemas"]["StoredFile"][];
         };
@@ -342,8 +343,8 @@ export interface operations {
                     /** @description Cursor for the previous page */
                     cursorPrevious?: number;
                 } | {
-                    /** @description ID of the post */
-                    postId?: string;
+                    /** @description Slug of the post */
+                    slug?: string;
                 };
                 /** @description Items per page */
                 pageSize?: number;

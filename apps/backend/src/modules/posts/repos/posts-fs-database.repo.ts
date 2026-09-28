@@ -34,11 +34,11 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
     };
   }
 
-  async findPostsAroundPostId(parameters: { postId: string; pageSize: number }): Promise<CursorPage<Post> | null> {
+  async findPostsAroundPostSlug(parameters: { slug: string; pageSize: number }): Promise<CursorPage<Post> | null> {
     const posts = await this.fsDatabaseFile.read();
 
     const index = posts.findIndex((post) => {
-      return post._meta.id === parameters.postId;
+      return post.slug === parameters.slug;
     });
 
     if (index === -1) {
@@ -113,12 +113,20 @@ export class PostsFsDatabaseRepo extends FsDatabaseRepo<Omit<Post, '_meta'>, Pos
     return this.fsDatabaseFile.readRowById(parameters);
   }
 
-  async createPost(parameters: { text: string; attachments: Array<StoredFile> }): Promise<Post> {
+  async createPost(parameters: { slug: string; text: string; attachments: Array<StoredFile> }): Promise<Post> {
     return this.fsDatabaseFile.writeEntityOrRow(undefined, parameters);
   }
 
+  /**
+   * Merges updated content into the stored post before writing it.
+   */
   async updatePostById(parameters: { id: string; text: string; attachments: Array<StoredFile> }): Promise<Post> {
-    return this.fsDatabaseFile.writeEntityOrRow(parameters.id, parameters);
+    const existingPost = await this.findPostById({ id: parameters.id });
+    return this.fsDatabaseFile.writeEntityOrRow(parameters.id, {
+      ...existingPost,
+      text: parameters.text,
+      attachments: parameters.attachments,
+    });
   }
 
   async deletePostById(parameters: { id: string }): Promise<Post> {

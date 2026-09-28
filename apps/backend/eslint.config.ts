@@ -44,13 +44,25 @@ export default defineConfig([
       'import-x/resolver-next': [createTypeScriptImportResolver()],
     },
     rules: {
+      // Keep generated OpenAPI types at the controller, domain, or entity boundary.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/types/openapi', '**/types/openapi'],
+              message: 'Import OpenAPI types only from .controller, .domain, or .entity files.',
+            },
+          ],
+        },
+      ],
       'no-console': ['error'],
       'no-unexpected-multiline': 'error',
       'no-var': 'error',
       'no-unsafe-optional-chaining': 'error',
       curly: ['error', 'all'],
       'arrow-body-style': ['error', 'always'],
-      'no-sparse-arrays': ['off'],
+      'no-sparse-arrays': ['error'],
       'prefer-const': ['error', { destructuring: 'all' }],
       'func-style': ['error', 'expression'],
       'no-return-assign': ['error', 'always'],
@@ -94,11 +106,10 @@ export default defineConfig([
           argsIgnorePattern: '^$',
         },
       ],
-      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-floating-promises': 'error',
 
-      // TODO: фиксить
-      // '@typescript-eslint/no-unsafe-assignment': 'off',
-      // '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
 
       '@typescript-eslint/no-misused-promises': [
         'error',
@@ -143,6 +154,12 @@ export default defineConfig([
           endOfLine: 'auto',
         },
       ],
+    },
+  },
+  {
+    files: ['**/*.controller.ts', '**/*.domain.ts', '**/*.entity.ts'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 ]);

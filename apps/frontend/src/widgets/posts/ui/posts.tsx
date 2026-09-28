@@ -40,9 +40,9 @@ const DialogDeletePost = dynamic(() => {
 });
 
 export const Posts = ({
-  selectedPostId,
+  selectedPostSlug,
 }: {
-  selectedPostId: components['schemas']['PostResponse']['_meta']['id'] | null;
+  selectedPostSlug: components['schemas']['PostResponse']['slug'] | null;
 }) => {
   const t = useTranslations('Post');
   const { isAdmin } = useIsAdminContext();
@@ -62,7 +62,7 @@ export const Posts = ({
     isFetchingNextPage,
     isFetchingPreviousPage,
     data: infiniteQueryGetPostsData,
-  } = useInfiniteQueryGetPosts(selectedPostId);
+  } = useInfiniteQueryGetPosts(selectedPostSlug);
 
   const posts = useMemo(() => {
     return (
@@ -111,14 +111,14 @@ export const Posts = ({
   );
 
   useLayoutEffect(() => {
-    if (isNil(selectedPostId)) {
+    if (isNil(selectedPostSlug)) {
       return;
     }
 
-    globalThis.document.querySelector(`[data-id="${CSS.escape(selectedPostId)}"]`)?.scrollIntoView({
+    globalThis.document.querySelector(`[data-slug="${CSS.escape(selectedPostSlug)}"]`)?.scrollIntoView({
       block: 'center',
     });
-  }, [selectedPostId]);
+  }, [selectedPostSlug]);
 
   const onClickAttachment: ComponentProps<typeof Post>['onClickAttachment'] = (attachment) => {
     if (!isAttachmentGalleryItem(attachment)) {
@@ -144,7 +144,7 @@ export const Posts = ({
           {isFetchingPreviousPage && <Spinner />}
 
           {posts.map((post) => {
-            return <EditablePost key={post._meta.id} {...{ post, selectedPostId, onClickAttachment }} />;
+            return <EditablePost key={post._meta.id} {...{ post, selectedPostSlug, onClickAttachment }} />;
           })}
 
           {isFetchingNextPage && <Spinner />}
