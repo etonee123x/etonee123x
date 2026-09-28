@@ -33,7 +33,6 @@
     "noPosts": "No posts",
     "noPostsFound": "No posts found",
     "myBlog": "My blog, here you can check out my posts; I write about the complexities of life, about thoughts that concern me! So think with your head.",
-    "postInMyBlog": "A post in my blog",
     "postAttachmentImage": "Post attachment, image"
   },
   "Explorer": {
@@ -82,8 +81,6 @@
     "cancel": "Cancel"
   },
   "Post": {
-    "post": "Post",
-    "postWithContent": "Post «{content}»",
     "editedAgo": "Edited {time}",
     "edit": "Edit",
     "delete": "Delete",
@@ -91,6 +88,9 @@
     "cancel": "Cancel",
     "couldNotSavePost": "Failed to save post",
     "thereAreNoMorePosts": "There are no more posts"
+  },
+  "PostDescription": {
+    "aPostInMyBlog": "A post in my blog, created on {date}. Attachments: {count}"
   },
   "FormPost": {
     "message": "Message...",

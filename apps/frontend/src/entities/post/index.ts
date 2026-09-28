@@ -1,6 +1,6 @@
 export { getPosts } from './api/get-posts';
 export { patchPostById } from './api/patch-post-by-id';
-export { getPostDescription } from './lib/get-post-description';
+export { usePostDescription } from './lib/use-post-description';
 export {
   useInfiniteQueryGetPosts,
   infiniteQueryOptionsGetPosts,
