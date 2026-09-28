@@ -1,21 +1,18 @@
-const MAX_POST_DESCRIPTION_LENGTH = 140;
+import type { components } from '@/shared/api/openapi';
+import { getFormatter, getTranslations } from 'next-intl/server';
+import { getPostDescriptionContent } from './get-post-description-content';
 
-// Keep post content concise without splitting words.
-export const getPostDescription = (text: string) => {
-  if (!text) {
-    return '';
+/** Builds a localized description for a post in a Server Component. */
+export const getPostDescription = async (post: components['schemas']['PostResponse']) => {
+  const content = getPostDescriptionContent(post.text);
+  if (content) {
+    return content;
   }
 
-  const normalizedText = text.replaceAll(/\n+/g, ' ').replaceAll(/\s+/g, ' ').trim();
+  const [t, formatter] = await Promise.all([getTranslations('PostDescription'), getFormatter()]);
 
-  if (normalizedText.length <= MAX_POST_DESCRIPTION_LENGTH) {
-    return normalizedText;
-  }
-
-  const slicedText = normalizedText.slice(0, MAX_POST_DESCRIPTION_LENGTH);
-  const lastSpaceIndex = slicedText.lastIndexOf(' ');
-
-  return lastSpaceIndex === -1
-    ? slicedText.slice(0, MAX_POST_DESCRIPTION_LENGTH - 1) + '…'
-    : slicedText.slice(0, lastSpaceIndex) + '…';
+  return t('aPostInMyBlog', {
+    date: formatter.dateTime(post._meta.createdAt, { dateStyle: 'long', timeZone: 'UTC' }),
+    count: post.attachments.length,
+  });
 };

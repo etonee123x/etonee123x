@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic';
 import { Separator } from '@/shared/ui/ds/separator';
 import { getIsAdmin } from '@/entities/session/server';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-import { getPostDescription, infiniteQueryOptionsGetPosts } from '@/entities/post';
+import { infiniteQueryOptionsGetPosts } from '@/entities/post';
+import { getPostDescription } from '@/entities/post/server';
 import { Posts } from '@/widgets/posts';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/ui/ds/empty';
 import type { Metadata } from 'next';
@@ -60,8 +61,7 @@ export const generateMetadata = async ({
     throw new Error('Post not found');
   }
 
-  // Use a blog-specific SEO fallback for posts without text.
-  const description = getPostDescription(post.text) || t('postInMyBlog');
+  const description = await getPostDescription(post);
 
   const image = post.attachments.find((attachment) => {
     return attachment.fileType === FILE_TYPES.IMAGE;
@@ -138,11 +138,10 @@ export default async function Blog({
         .find((post) => {
           return post.slug === postSlug;
         });
-  const selectedPostDescription = selectedPost ? getPostDescription(selectedPost.text) : '';
-
   const isAdmin = await getIsAdmin();
 
   const t = await getTranslations('Blog');
+  const selectedPostDescription = selectedPost ? await getPostDescription(selectedPost) : '';
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

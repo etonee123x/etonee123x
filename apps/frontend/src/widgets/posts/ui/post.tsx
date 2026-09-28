@@ -1,6 +1,6 @@
 'use client';
 
-import { getPostDescription } from '@/entities/post';
+import { usePostDescription } from '@/entities/post';
 import { FILE_TYPES } from '@/entities/file';
 import { share, ShareButton } from '@/features/share';
 import { Link } from '@/i18n/navigation';
@@ -43,6 +43,7 @@ export const Post = ({
   content?: ReactNode;
   afterFooterButtons?: ReactNode;
 }) => {
+  const description = usePostDescription(post);
   const t = useTranslations('Post');
 
   const { relativeTime } = useFormatter();
@@ -52,9 +53,6 @@ export const Post = ({
   const { open, setOnClose } = useGalleryContext();
 
   const isSelected = selectedPostSlug === post.slug;
-
-  const descriptionContent = getPostDescription(post.text);
-  const description = descriptionContent ? t('postWithContent', { content: descriptionContent }) : t('post');
 
   const onClickAttachment = (attachment: components['schemas']['StoredFile']) => {
     if (_onClickAttachment) {

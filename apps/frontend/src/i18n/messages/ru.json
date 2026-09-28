@@ -33,7 +33,6 @@
     "noPosts": "Нет постов",
     "noPostsFound": "Постов не найдено",
     "myBlog": "Мой блог, тут можно заценить мои посты; пишу о жизни непростой, о мыслях, что меня волнуют! Вот и думай головой.",
-    "postInMyBlog": "Пост в моём блоге",
     "postAttachmentImage": "Вложение поста, изображение"
   },
   "Explorer": {
@@ -82,8 +81,6 @@
     "cancel": "Отмена"
   },
   "Post": {
-    "post": "Пост",
-    "postWithContent": "Пост «{content}»",
     "editedAgo": "Изменено {time}",
     "edit": "Редактировать",
     "delete": "Удалить",
@@ -92,6 +89,9 @@
     "cancel": "Отменить",
     "couldNotSavePost": "Не удалось сохранить пост",
     "thereAreNoMorePosts": "Больше постов нет"
+  },
+  "PostDescription": {
+    "aPostInMyBlog": "Пост в моём блоге, создан {date}. Вложений: {count}"
   },
   "FormPost": {
     "message": "Сообщение...",
