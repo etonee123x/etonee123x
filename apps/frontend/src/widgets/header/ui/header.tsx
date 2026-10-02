@@ -1,23 +1,20 @@
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from '@/shared/ui/ds/navigation-menu';
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from '@/shared/ui/ds/navigation-menu';
 import { type HTMLProps } from 'react';
 import { cn } from '@/shared/utils/cn';
-import { ThemeSwitcher } from '@/features/theme';
-import { LocaleSwitcher } from '@/features/locale/switch-locale';
-import { ButtonLogout } from '@/features/auth/logout';
 import { NavigationMenuLink } from './navigation-menu-link';
-import { getIsAdmin } from '@/entities/session/server';
 import { getTranslations } from 'next-intl/server';
+import { HeaderSettings } from './header-settings';
+import { Link } from '@/i18n/navigation';
 
 export const Header = async ({ className }: Readonly<HTMLProps<HTMLDivElement>>) => {
   const t = await getTranslations('TheHeader');
-  const isAdmin = await getIsAdmin();
 
   const NAVIGATION_MENU_ITEMS = [
-    {
-      className: 'text-xl text-primary',
-      href: '/',
-      text: t('etonee123x'),
-    },
     {
       href: '/explorer',
       text: t('content'),
@@ -26,30 +23,37 @@ export const Header = async ({ className }: Readonly<HTMLProps<HTMLDivElement>>)
       href: '/blog',
       text: t('blog'),
     },
+    {
+      href: '/contact-me',
+      text: t('contactMe'),
+    },
   ];
 
   return (
     <header
-      className={cn('layout-container fixed top-0 w-full flex items-center z-header gap-4 h-header-height', className)}
+      className={cn(
+        'layout-container fixed top-0 z-header grid h-header-height w-full grid-cols-[auto_1fr] grid-rows-[1fr_1fr] py-1 items-center gap-x-2 gap-y-1 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-rows-1 sm:gap-2',
+        className,
+      )}
     >
-      <NavigationMenu className="-ms-2.5">
-        <NavigationMenuList>
+      <Link
+        href="/"
+        className={cn(navigationMenuTriggerStyle(), '-ms-2.5 col-start-1 row-start-1 text-xl text-primary')}
+      >
+        {t('etonee123x')}
+      </Link>
+      <NavigationMenu className="-ms-2.5 -my-1 col-span-2 row-start-2 min-w-0 max-w-none justify-start sm:m-0 sm:col-start-2 sm:col-span-1 sm:row-start-1">
+        <NavigationMenuList className="w-max min-w-max flex-none justify-start">
           {NAVIGATION_MENU_ITEMS.map((navigationMenuItem) => {
             return (
               <NavigationMenuItem key={navigationMenuItem.href}>
-                <NavigationMenuLink href={navigationMenuItem.href} className={navigationMenuItem.className}>
-                  {navigationMenuItem.text}
-                </NavigationMenuLink>
+                <NavigationMenuLink href={navigationMenuItem.href}>{navigationMenuItem.text}</NavigationMenuLink>
               </NavigationMenuItem>
             );
           })}
         </NavigationMenuList>
       </NavigationMenu>
-      <div className="flex gap-2 items-center ms-auto">
-        <ThemeSwitcher />
-        <LocaleSwitcher />
-        {isAdmin && <ButtonLogout />}
-      </div>
+      <HeaderSettings className="ms-auto col-start-2 row-start-1 sm:col-start-3" />
     </header>
   );
 };

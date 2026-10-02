@@ -24,16 +24,16 @@ const createAuthService = (createdAt: number | null) => {
 
 describe('AuthService', () => {
   const previousSecretKey = process.env.SECRET_KEY;
-  const previousMaxLifetime = process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES;
+  const previousMaxLifetime = process.env.AUTH_TOKEN_MAX_LIFETIME_MS;
 
   beforeEach(() => {
     process.env.SECRET_KEY = 'test-secret';
-    process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES = '10';
+    process.env.AUTH_TOKEN_MAX_LIFETIME_MS = '600000';
   });
 
   afterEach(() => {
     process.env.SECRET_KEY = previousSecretKey;
-    process.env.AUTH_TOKEN_MAX_LIFETIME_MINUTES = previousMaxLifetime;
+    process.env.AUTH_TOKEN_MAX_LIFETIME_MS = previousMaxLifetime;
   });
 
   it('exchanges a valid OTT for a short-lived admin JWT', async () => {

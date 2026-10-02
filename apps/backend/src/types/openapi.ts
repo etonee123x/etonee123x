@@ -22,6 +22,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/contact-me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a message via the contact-me form
+         * @description Submit a message with an optional contact for a reply.
+         */
+        post: operations["submitContactMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/one-time-token": {
         parameters: {
             query?: never;
@@ -116,6 +136,15 @@ export interface components {
         Error401: {
             message: string;
         };
+        ContactRequest: {
+            /** @description Message text. */
+            text: string;
+            /** @description Optional reply contact, such as an email address or Telegram username. */
+            contact?: string;
+        };
+        Error400: {
+            message: string;
+        };
         /** @enum {string} */
         ItemType: "FOLDER" | "FILE";
         StoredFileBase: {
@@ -183,9 +212,6 @@ export interface components {
                 cursorNext: number | null;
             };
             rows: components["schemas"]["PostResponse"][];
-        };
-        Error400: {
-            message: string;
         };
         PostCreateRequest: {
             files: string[];
@@ -299,6 +325,44 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Error401"];
                 };
+            };
+        };
+    };
+    submitContactMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            /** @description Message sent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid message or contact */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error400"];
+                };
+            };
+            /** @description Too many requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

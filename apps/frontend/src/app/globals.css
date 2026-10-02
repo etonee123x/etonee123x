@@ -3,8 +3,6 @@
 @import "shadcn/tailwind.css";
 
 @theme {
-  --spacing-header-height: 3rem;
-
   --z-index-player: 10;
   --z-index-footer: 10;
   --z-index-header: 10;
@@ -81,6 +79,8 @@
 }
 
 @theme inline {
+  --spacing-header-height: var(--header-height);
+
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -140,8 +140,13 @@
   :root {
     color-scheme: dark light;
 
+    --header-height: 5.25rem;
     --vw: 100dvw;
     --container-padding: calc((var(--vw) - min(50rem, calc(var(--vw) * 11 / 12))) / 2);
+  
+    @media (min-width: 40rem) {
+      --header-height: 2.75rem;
+    }
   }
 
   body {

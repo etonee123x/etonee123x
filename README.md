@@ -13,7 +13,6 @@
 - [Архитектура frontend](#архитектура-frontend)
 - [API и OpenAPI](#api-и-openapi)
 - [Проверки](#проверки)
-- [Runtime-проверки в браузере](#runtime-проверки-в-браузере)
 - [Работа с AI-агентами](#работа-с-ai-агентами)
 
 ## Структура
@@ -55,12 +54,6 @@ npx skills experimental_install
 find .agents/skills -name SKILL.md -print
 ```
 
-`agent-browser` устанавливается вместе с frontend как локальная dev-зависимость. Глобальная установка не нужна:
-
-```sh
-npx agent-browser --version
-```
-
 После установки можно переходить к настройке окружения и запуску приложений.
 
 ## Ответственность приложений
@@ -100,34 +93,6 @@ cd apps/backend && npm run typecheck
 cd apps/openApi && npm run lint
 ```
 
-Для frontend-изменений проверяй не только типы: при доступном `next dev` используй skill `.agents/skills/next-dev-loop`, чтобы проверить compilation, server/browser errors, DOM и пользовательское взаимодействие.
-
-## Runtime-проверки в браузере
-
-Для `next-dev-loop` нужен CLI `agent-browser`. В этом проекте он добавлен как локальная dev-зависимость frontend:
-
-```sh
-cd apps/frontend
-npm install
-npx agent-browser --version
-```
-
-Запускай команды skill из `apps/frontend` через `npx`:
-
-```sh
-npx agent-browser <command>
-```
-
-Глобальная установка не требуется. Если всё же нужно использовать CLI без `npx` из любого проекта, можно установить его глобально через `npm install --global agent-browser@latest`. На macOS это может завершиться ошибкой `EACCES`, если у текущего пользователя нет прав на `/usr/local/lib`; в таком случае используй локальную установку.
-
-Требования официального skill: Next.js 16.3+, Turbopack и `agent-browser` 0.31.1+. Запусти frontend перед runtime-проверкой:
-
-```sh
-npm run dev
-```
-
-После этого агент использует `/_next/mcp` и `agent-browser` для проверки compilation, ошибок сервера и браузера, DOM, React-дерева и пользовательских действий.
-
 ## Работа с AI-агентами
 
 - `AGENTS.md` содержит общие правила проекта и version-matched инструкции Next.js.
@@ -143,7 +108,7 @@ npm run dev
 npx skills experimental_install
 ```
 
-Команда читает `skills-lock.json` в корне и восстанавливает skills в `.agents/skills/`. Команды skill выполняй из рабочей директории, указанной в его документации. Например, `agent-browser` команды — из `apps/frontend`.
+Команда читает `skills-lock.json` в корне и восстанавливает skills в `.agents/skills/`. Команды skill выполняй из рабочей директории, указанной в его документации.
 
 Действующие skills:
 
@@ -151,7 +116,6 @@ npx skills experimental_install
 - **feature-sliced-design** — ФСД v2.1, структура, слои, импорты.
 - **vercel-react-best-practices** — оптимизация React/Next.js.
 - **vercel-composition-patterns** — архитектура компонентов, composition API.
-- **next-dev-loop** — runtime-проверка Next.js (требует `next dev` и `agent-browser`).
 - **web-design-guidelines** — audit дизайна и доступности UI.
 
 ## Лицензия

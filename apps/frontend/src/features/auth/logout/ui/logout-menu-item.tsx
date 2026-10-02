@@ -1,12 +1,14 @@
 'use client';
 
-import { Button } from '@/shared/ui/ds/button';
 import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { client } from '@/shared/api/client';
 import { LogOut } from 'lucide-react';
+import { DropdownMenuItem } from '@/shared/ui/ds/dropdown-menu';
 
-export const ButtonLogout = () => {
+export const LogoutMenuItem = () => {
   const router = useRouter();
+  const t = useTranslations('TheHeader');
 
   const onClick = async () => {
     await client['/auth'].DELETE();
@@ -14,14 +16,13 @@ export const ButtonLogout = () => {
   };
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
+    <DropdownMenuItem
       onClick={() => {
         onClick();
       }}
     >
-      <LogOut />
-    </Button>
+      <LogOut aria-hidden="true" />
+      {t('logOut')}
+    </DropdownMenuItem>
   );
 };

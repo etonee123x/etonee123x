@@ -1,0 +1,14 @@
+type: object
+additionalProperties: false
+properties:
+  text:
+    type: string
+    minLength: 1
+    maxLength: 5000
+    description: Message text.
+  contact:
+    type: string
+    maxLength: 320
+    description: Optional reply contact, such as an email address or Telegram username.
+required:
+  - text

@@ -4,6 +4,22 @@
     "myPersonalWebsite": "Мой личный сайт: блог о жизни и мыслях, а также архив музыки, фотографий и видео.",
     "yesThereIsNothingHere": "Да, тут ничего нет :("
   },
+  "ContactMePage": {
+    "contactMe": "Напиши мне",
+    "questionIdeaOrRecommendation": "Вопрос, идея или рекомендация — я прочитаю каждое сообщение.",
+    "yourMessage": "Твоё сообщение",
+    "messageIsRequired": "Сообщение обязательно.",
+    "sampleText": "Вставить текст",
+    "whereCanIReply": "Куда ответить? (необязательно)",
+    "yourEmailOrAnotherContact": "Твой Email или другой контакт",
+    "sendMessage": "Отправить",
+    "sendingMessage": "Отправляем...",
+    "thanksIllReplySoon": "Благодарю! Скоро отвечу!",
+    "k": "K.",
+    "couldNotSendMessage": "Не удалось отправить сообщение. Попробуй ещё раз.",
+    "messageLimitReached": "Лимит сообщений на сегодня исчерпан",
+    "messageLimitDetails": "Можно отправить не больше 3 сообщений за 24 часа. Попробуй позже."
+  },
   "BlogWidget": {
     "blog": "Блог",
     "whatIWriteAbout": "Мой блог, тут можно заценить мои посты; пишу о жизни непростой, о мыслях, что меня волнуют! Вот и думай головой.",
@@ -59,17 +75,19 @@
   "TheHeader": {
     "etonee123x": "etonee123x",
     "blog": "Блог",
-    "content": "Контент"
+    "content": "Контент",
+    "contactMe": "Связь со мной",
+    "settings": "Настройки",
+    "language": "Язык",
+    "theme": "Тема",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "system": "Системная",
+    "logOut": "Выйти"
   },
   "TheFooter": {
     "telegram": "Telegram",
     "gitHub": "GitHub"
-  },
-  "ThemeSwitcher": {
-    "light": "Светлая",
-    "dark": "Тёмная",
-    "system": "Системная",
-    "toggleTheme": "Сменить тему"
   },
   "PostAttachmentImage": {
     "attachment": "Вложение {index}"

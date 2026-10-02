@@ -20,12 +20,17 @@ tags:
     description: Posts CRUD
   - name: Auth
     description: Authentication
+  - name: Contact
+    description: Contact form
   - name: Private
     description: Private backend operations
 
 paths:
   /auth:
     $ref: paths/auth.yaml
+
+  /contact-me:
+    $ref: paths/contact-me.yaml
 
   /one-time-token:
     $ref: paths/one-time-token.yaml

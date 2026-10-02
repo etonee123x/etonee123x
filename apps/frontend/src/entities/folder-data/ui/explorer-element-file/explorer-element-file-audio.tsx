@@ -86,7 +86,7 @@ export const ExplorerElementFileAudio = ({
       <Card
         size="sm"
         style={style}
-        className={cn('group/audio @container/audio overflow-hidden', EXPLORER_ELEMENT_FILE_CARD_CLASS_NAME)}
+        className={cn('group/audio overflow-hidden', EXPLORER_ELEMENT_FILE_CARD_CLASS_NAME)}
       >
         {/* Full-card link stays behind content so controls can opt into pointer events. */}
         <Link
@@ -97,12 +97,12 @@ export const ExplorerElementFileAudio = ({
         />
         <AudioTrackProgress trackSrc={element.src} duration={element.metadata.duration} />
 
-        <div className="grid grid-cols-1 @sm/audio:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
+        <div className="grid grid-cols-1 sm:has-data-cover:grid-cols-[auto_1fr] grid-rows-[repeat(3, auto)]">
           <header className="contents">
             {!isNil(element.metadata.cover) && (
               <Image
                 data-cover
-                className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) @sm:mt-0 @sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) @sm/audio:mb-0 @sm/audio:size-23 @sm/audio:row-span-3 @sm/audio:rounded-sm"
+                className="w-full aspect-square object-cover relative z-1 -mt-(--card-spacing) sm:mt-0 sm:ms-(--card-spacing) shrink-0 self-start mb-(--card-spacing) sm:mb-0 sm:size-23 sm:row-span-3 sm:rounded-sm"
                 src={element.metadata.cover.src}
                 alt={t('cover', { trackName: element.name })}
                 width={element.metadata.cover.width}
