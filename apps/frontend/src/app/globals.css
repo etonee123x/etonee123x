@@ -140,13 +140,9 @@
   :root {
     color-scheme: dark light;
 
-    --header-height: 5.25rem;
+    --header-height: 0px;
     --vw: 100dvw;
     --container-padding: calc((var(--vw) - min(50rem, calc(var(--vw) * 11 / 12))) / 2);
-  
-    @media (min-width: 40rem) {
-      --header-height: 2.75rem;
-    }
   }
 
   body {
