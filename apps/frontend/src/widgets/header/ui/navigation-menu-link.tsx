@@ -1,9 +1,10 @@
 'use client';
 
 import { NavigationMenuLink as _NavigationMenuLink, navigationMenuTriggerStyle } from '@/shared/ui/ds/navigation-menu';
-import { Link, usePathname } from '@/i18n/navigation';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/shared/utils/cn';
 import { type ComponentProps } from 'react';
+import { useIsMenuLinkActive } from '../model/use-is-menu-link-active';
 
 export const NavigationMenuLink = ({
   href,
@@ -11,8 +12,7 @@ export const NavigationMenuLink = ({
   className,
   ...props
 }: ComponentProps<typeof _NavigationMenuLink> & Required<Pick<ComponentProps<typeof _NavigationMenuLink>, 'href'>>) => {
-  const pathname = usePathname();
-  const isActive = pathname === href || (pathname.startsWith(href) && href !== '/');
+  const isActive = useIsMenuLinkActive(href);
 
   return (
     <_NavigationMenuLink
