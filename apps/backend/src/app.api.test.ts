@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '@/app';
 import { appConfig } from '@/config/app-config';
@@ -21,6 +21,57 @@ describe('API smoke', () => {
     const response = await request(app).get('/folder-data').expect(400);
 
     expect(response.body).toMatchObject({ statusCode: 400 });
+  });
+
+  /**
+   * Verifies three contact submissions succeed per day and the fourth is rate limited.
+   */
+  it('limits contact messages to three submissions per day', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async () => {
+      return Response.json({ ok: true, result: {} });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    try {
+      const app = createApp();
+
+      for (let count = 0; count < 3; count += 1) {
+        await request(app).post('/contact-me').send({ text: 'Hello', contact: 'reader@example.com' }).expect(204);
+      }
+
+      await request(app).post('/contact-me').send({ text: 'Hello', contact: 'reader@example.com' }).expect(429);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  /**
+   * Rejects invalid contact payloads before attempting Telegram delivery.
+   */
+  it('rejects invalid contact payloads before attempting Telegram delivery', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalidPayloads = [
+      { text: ' '.repeat(3) },
+      { text: 42 },
+      { text: 'x'.repeat(5001) },
+      { text: 'Hello', contact: 42 },
+      { text: 'Hello', contact: 'x'.repeat(321) },
+      { text: 'Hello', extra: true },
+    ];
+
+    try {
+      for (const payload of invalidPayloads) {
+        const response = await request(createApp()).post('/contact-me').send(payload).expect(400);
+
+        expect(response.body).toMatchObject({ statusCode: 400 });
+      }
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   /**

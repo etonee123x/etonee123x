@@ -1,0 +1,23 @@
+post:
+  operationId: submitContactMessage
+  summary: Submit a message via the contact-me form
+  tags:
+    - Contact
+  description: Submit a message with an optional contact for a reply.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ContactRequest.yaml
+  responses:
+    "204":
+      description: Message sent
+    "400":
+      description: Invalid message or contact
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Error400.yaml
+    "429":
+      description: Too many requests

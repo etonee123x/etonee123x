@@ -18,9 +18,9 @@ export class AuthService {
   async login(parameters: { ott: string }): Promise<{ jwt: string; expires: Date }> {
     await this.oneTimeTokenService.consume({ token: parameters.ott });
 
-    const { secretKey, authTokenMaxLifetimeMinutes } = appConfig;
+    const { secretKey, authTokenMaxLifetimeMs } = appConfig;
     const issuedAt = Math.floor(Date.now() / 1000);
-    const lifetimeSeconds = authTokenMaxLifetimeMinutes * 60;
+    const lifetimeSeconds = authTokenMaxLifetimeMs / 1000;
     const jwt = jsonWebToken.sign({ isAdmin: true, iat: issuedAt }, secretKey, { expiresIn: lifetimeSeconds });
 
     return {

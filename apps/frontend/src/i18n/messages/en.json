@@ -4,6 +4,22 @@
     "myPersonalWebsite": "My personal website: a blog about life and ideas, plus an archive of music, photos, and videos.",
     "yesThereIsNothingHere": "Yes, there is nothing here :("
   },
+  "ContactMePage": {
+    "contactMe": "Contact me",
+    "questionIdeaOrRecommendation": "A question, an idea, or a recommendation — I read every message.",
+    "yourMessage": "Your message",
+    "messageIsRequired": "A message is required.",
+    "sampleText": "Sample text",
+    "whereCanIReply": "Where can I reply? (optional)",
+    "yourEmailOrAnotherContact": "Your email or another contact",
+    "sendMessage": "Send",
+    "sendingMessage": "Sending...",
+    "thanksIllReplySoon": "Thanks! I'll reply soon!",
+    "k": "K.",
+    "couldNotSendMessage": "Could not send the message. Try again.",
+    "messageLimitReached": "Daily message limit reached",
+    "messageLimitDetails": "You can send up to 3 messages every 24 hours. Please try again later."
+  },
   "BlogWidget": {
     "blog": "Blog",
     "whatIWriteAbout": "My blog, here you can check out my posts; I write about the complexities of life, about thoughts that concern me! So think with your head.",
@@ -59,17 +75,19 @@
   "TheHeader": {
     "etonee123x": "etonee123x",
     "blog": "Blog",
-    "content": "Content"
+    "content": "Content",
+    "contactMe": "Contact me",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "logOut": "Log out"
   },
   "TheFooter": {
     "telegram": "Telegram",
     "gitHub": "GitHub"
-  },
-  "ThemeSwitcher": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System",
-    "toggleTheme": "Toggle theme"
   },
   "PostAttachmentImage": {
     "attachment": "Attachment {index}"

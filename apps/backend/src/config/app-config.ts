@@ -48,13 +48,21 @@ class AppConfig {
   */
   readonly oneTimeTokenSecret: string;
   /**
+  Telegram bot token used for contact message delivery.
+  */
+  readonly telegramBotToken: string;
+  /**
+  Telegram chat ID that receives contact messages.
+  */
+  readonly telegramChatId: string;
+  /**
   Maximum age of an unused one-time token in milliseconds.
   */
   readonly oneTimeTokenTtlMs: number;
   /**
-  Maximum JWT lifetime in minutes.
+  Maximum JWT lifetime in milliseconds.
   */
-  readonly authTokenMaxLifetimeMinutes: number;
+  readonly authTokenMaxLifetimeMs: number;
   /**
   Path to the database files.
   */
@@ -111,10 +119,10 @@ class AppConfig {
     this.port = AppConfig.getPortFromEnvironment();
     this.secretKey = AppConfig.getRequiredEnvironmentVariable('SECRET_KEY');
     this.oneTimeTokenSecret = AppConfig.getRequiredEnvironmentVariable('ONE_TIME_TOKEN_SECRET');
+    this.telegramBotToken = AppConfig.getRequiredEnvironmentVariable('TELEGRAM_BOT_TOKEN');
+    this.telegramChatId = AppConfig.getRequiredEnvironmentVariable('TELEGRAM_CHAT_ID');
     this.oneTimeTokenTtlMs = AppConfig.getEnvironmentVariablePositiveNumber('ONE_TIME_TOKEN_TTL_MS');
-    this.authTokenMaxLifetimeMinutes = AppConfig.getEnvironmentVariablePositiveNumber(
-      'AUTH_TOKEN_MAX_LIFETIME_MINUTES',
-    );
+    this.authTokenMaxLifetimeMs = AppConfig.getEnvironmentVariablePositiveNumber('AUTH_TOKEN_MAX_LIFETIME_MS');
     this.databasePath = AppConfig.getRequiredEnvironmentVariable('DATABASE_PATH');
     this.contentPath = AppConfig.getRequiredEnvironmentVariable('CONTENT_PATH');
     this.uploadsPath = AppConfig.getRequiredEnvironmentVariable('UPLOADS_PATH');

@@ -12,6 +12,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { FolderDataModule } from '@/modules/folder-data/folder-data.module';
 import { HealthModule } from '@/modules/health/health.module';
 import { OneTimeTokenModule } from '@/modules/one-time-token/one-time-token.module';
+import { ContactModule } from '@/modules/contact/contact.module';
 
 export const createApp = () => {
   const router = Express.Router();
@@ -23,6 +24,7 @@ export const createApp = () => {
     new FolderDataModule(),
     new HealthModule(),
     oneTimeTokenModule,
+    new ContactModule(),
   ]) {
     module.init(router);
   }
