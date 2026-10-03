@@ -16,6 +16,8 @@ tags:
     description: Posts CRUD
   - name: Auth
     description: Authentication
+  - name: Contact
+    description: Contact form
   - name: Private
     description: Private backend operations
 paths:
@@ -78,6 +80,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error401'
+  /contact-me:
+    post:
+      operationId: submitContactMessage
+      summary: Submit a message via the contact-me form
+      tags:
+        - Contact
+      description: Submit a message with an optional contact for a reply.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequest'
+      responses:
+        '204':
+          description: Message sent
+        '400':
+          description: Invalid message or contact
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400'
+        '429':
+          description: Too many requests
   /one-time-token:
     post:
       operationId: createOneTimeToken
@@ -326,6 +352,28 @@ components:
           type: string
       required:
         - message
+    ContactRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Message text.
+        contact:
+          type: string
+          maxLength: 320
+          description: Optional reply contact, such as an email address or Telegram username.
+      required:
+        - text
+    Error400:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
     ItemType:
       type: string
       enum:
@@ -550,13 +598,6 @@ components:
       required:
         - _meta
         - rows
-    Error400:
-      type: object
-      properties:
-        message:
-          type: string
-      required:
-        - message
     PostCreateRequest:
       type: object
       properties:

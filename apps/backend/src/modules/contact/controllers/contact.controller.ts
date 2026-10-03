@@ -23,8 +23,8 @@ const contactMessageValidationRules = [
     .withMessage('text must be a string')
     .bail()
     .trim()
-    .isLength({ min: 1, max: 5000 })
-    .withMessage('text must contain between 1 and 5000 characters'),
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('text must contain between 1 and 2000 characters'),
   body('contact')
     .optional()
     .isString()

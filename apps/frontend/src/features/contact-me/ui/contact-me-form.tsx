@@ -116,7 +116,7 @@ export const ContactMeForm = () => {
               id="contact-message"
               className="min-h-48 resize-y leading-6"
               autoFocus
-              maxLength={5000}
+              maxLength={2000}
               name="text"
               placeholder={t('sampleText')}
               aria-invalid={isTextInvalid}
@@ -132,7 +132,7 @@ export const ContactMeForm = () => {
             />
             <div className="flex items-baseline justify-between gap-4">
               {isTextInvalid && <FieldError>{t('messageIsRequired')}</FieldError>}
-              <FieldDescription className="ms-auto">{text.length} / 5000</FieldDescription>
+              <FieldDescription className="ms-auto">{text.length} / 2000</FieldDescription>
             </div>
           </Field>
 

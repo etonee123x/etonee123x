@@ -4,7 +4,7 @@ properties:
   text:
     type: string
     minLength: 1
-    maxLength: 5000
+    maxLength: 2000
     description: Message text.
   contact:
     type: string
