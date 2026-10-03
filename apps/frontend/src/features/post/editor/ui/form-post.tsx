@@ -10,6 +10,8 @@ import {
   type ComponentRef,
   type HTMLProps,
   type Ref,
+  memo,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -120,6 +122,35 @@ const SortableFormAttachment = ({
     />
   );
 };
+
+// Keep drag-and-drop previews mounted and out of text-only form renders.
+const FormPostAttachments = memo(function FormPostAttachments({
+  attachments,
+  onClickRemoveByIndex,
+  onDragEnd,
+}: {
+  attachments: Array<FileOrAttachment>;
+  onClickRemoveByIndex: (index: number) => void;
+  onDragEnd: ComponentProps<typeof DragDropProvider>['onDragEnd'];
+}) {
+  return (
+    <DragDropProvider onDragEnd={onDragEnd}>
+      <div className="flex gap-4 flex-col group/form-post-attachments">
+        {attachments.map((fileOrAttachment, index) => {
+          return (
+            <SortableFormAttachment
+              id={fileOrAttachmentToKey(fileOrAttachment)}
+              index={index}
+              key={fileOrAttachmentToKey(fileOrAttachment)}
+              fileOrAttachment={fileOrAttachment}
+              onClickRemoveByIndex={onClickRemoveByIndex}
+            />
+          );
+        })}
+      </div>
+    </DragDropProvider>
+  );
+});
 
 export interface FormPostRef {
   focusTextarea: () => void;
@@ -282,17 +313,17 @@ export const FormPost = ({
     focusTextareaAtEnd();
   };
 
-  const onClickDeleteFiles = () => {
+  const onClickDeleteFiles = useCallback(() => {
     setModelFilesAndAttachments([]);
-  };
+  }, []);
 
-  const onClickRemoveByIndex = (index: number) => {
+  const onClickRemoveByIndex = useCallback((index: number) => {
     setModelFilesAndAttachments((modelFilesAndAttachments) => {
       return modelFilesAndAttachments.toSpliced(index, 1);
     });
-  };
+  }, []);
 
-  const onDragEnd: ComponentProps<typeof DragDropProvider>['onDragEnd'] = (event) => {
+  const onDragEnd = useCallback<NonNullable<ComponentProps<typeof DragDropProvider>['onDragEnd']>>((event) => {
     const { source } = event.operation;
 
     if (event.canceled || !isSortable(source) || source.initialIndex === source.index) {
@@ -304,7 +335,7 @@ export const FormPost = ({
         .toSpliced(source.initialIndex, 1)
         .toSpliced(source.index, 0, modelFilesAndAttachments[source.initialIndex] ?? throwError());
     });
-  };
+  }, []);
 
   return (
     <form {...props} className="flex flex-col gap-4" onSubmit={_onSubmit}>
@@ -329,21 +360,11 @@ export const FormPost = ({
       </div>
       {modelFilesAndAttachments.length > 0 && (
         <div className="flex flex-col gap-2">
-          <DragDropProvider onDragEnd={onDragEnd}>
-            <div className="flex gap-4 flex-col group/form-post-attachments">
-              {modelFilesAndAttachments.map((fileOrAttachment, index) => {
-                return (
-                  <SortableFormAttachment
-                    id={fileOrAttachmentToKey(fileOrAttachment)}
-                    index={index}
-                    key={fileOrAttachmentToKey(fileOrAttachment)}
-                    fileOrAttachment={fileOrAttachment}
-                    onClickRemoveByIndex={onClickRemoveByIndex}
-                  />
-                );
-              })}
-            </div>
-          </DragDropProvider>
+          <FormPostAttachments
+            attachments={modelFilesAndAttachments}
+            onClickRemoveByIndex={onClickRemoveByIndex}
+            onDragEnd={onDragEnd}
+          />
           <Button className="self-end" size="sm" variant="ghost" onClick={onClickDeleteFiles}>
             {t('clearAll')}
             <X />

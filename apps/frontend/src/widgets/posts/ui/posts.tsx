@@ -2,8 +2,6 @@
 
 import { useInfiniteQueryGetPosts } from '@/entities/post';
 import { useIsAdminContext } from '@/entities/session/client';
-import { DeletePostProvider } from '@/features/post/delete';
-import { EditPostProvider } from '@/features/post/editor';
 import type { components } from '@/shared/api/openapi';
 import { Marker, MarkerContent } from '@/shared/ui/ds/marker';
 import { Spinner } from '@/shared/ui/ds/spinner';
@@ -14,8 +12,19 @@ import dynamic from 'next/dynamic';
 import { useLayoutEffect, useMemo, useRef, type ComponentProps } from 'react';
 import { isNil } from '@/shared/utils/is-nil';
 import { useWindowScrollPosition } from '@/shared/hooks/use-window-scroll-position';
-import { EditablePost } from './editable-post';
-import type { Post } from './post';
+import { Post } from './post';
+
+const EditablePost = dynamic(() => {
+  return import('./editable-post').then((module) => {
+    return module.EditablePost;
+  });
+});
+
+const AdminPostProviders = dynamic(() => {
+  return import('./admin-post-providers').then((module) => {
+    return module.AdminPostProviders;
+  });
+});
 
 const isAttachmentGalleryItem = (attachment: components['schemas']['PostResponse']['attachments'][number]) => {
   return attachment.fileType === FILE_TYPES.IMAGE || attachment.fileType === FILE_TYPES.VIDEO;
@@ -32,12 +41,6 @@ const attachmentGalleryItemToGalleryItem = (
     type: attachment.fileType === FILE_TYPES.IMAGE ? 'image' : 'video',
   } as const;
 };
-
-const DialogDeletePost = dynamic(() => {
-  return import('@/features/post/delete').then((module) => {
-    return module.DialogDeletePost;
-  });
-});
 
 export const Posts = ({
   selectedPostSlug,
@@ -138,25 +141,28 @@ export const Posts = ({
   };
 
   return (
-    <DeletePostProvider>
-      <EditPostProvider>
-        <div className="flex flex-col gap-6">
-          {isFetchingPreviousPage && <Spinner />}
+    <div className="flex flex-col gap-6">
+      {isFetchingPreviousPage && <Spinner />}
 
+      {isAdmin ? (
+        <AdminPostProviders>
           {posts.map((post) => {
             return <EditablePost key={post._meta.id} {...{ post, selectedPostSlug, onClickAttachment }} />;
           })}
+        </AdminPostProviders>
+      ) : (
+        posts.map((post) => {
+          return <Post key={post._meta.id} {...{ post, selectedPostSlug, onClickAttachment }} />;
+        })
+      )}
 
-          {isFetchingNextPage && <Spinner />}
+      {isFetchingNextPage && <Spinner />}
 
-          {!hasNextPage && posts.length > 0 && (
-            <Marker variant="separator">
-              <MarkerContent>{t('thereAreNoMorePosts')}</MarkerContent>
-            </Marker>
-          )}
-        </div>
-        {isAdmin && <DialogDeletePost />}
-      </EditPostProvider>
-    </DeletePostProvider>
+      {!hasNextPage && posts.length > 0 && (
+        <Marker variant="separator">
+          <MarkerContent>{t('thereAreNoMorePosts')}</MarkerContent>
+        </Marker>
+      )}
+    </div>
   );
 };
