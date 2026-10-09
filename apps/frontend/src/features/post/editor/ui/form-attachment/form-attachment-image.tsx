@@ -36,12 +36,12 @@ export const FormAttachmentImage = ({
       <AttachmentActions>
         <AttachmentAction
           className="cursor-grab group-not-has-[>:nth-child(2)]/form-post-attachments:hidden"
-          size="lg"
+          size="icon"
           ref={handleRef}
         >
           <Grip />
         </AttachmentAction>
-        <AttachmentAction className="ms-2" variant="destructive" onClick={onClickRemove}>
+        <AttachmentAction size="icon-sm" className="ms-2" variant="destructive" onClick={onClickRemove}>
           <X />
         </AttachmentAction>
       </AttachmentActions>

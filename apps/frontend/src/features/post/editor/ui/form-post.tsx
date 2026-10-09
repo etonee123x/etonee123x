@@ -18,11 +18,12 @@ import {
   useState,
 } from 'react';
 import { extensionToFileType, FILE_TYPES } from '@/entities/file';
-import { DragDropProvider } from '@dnd-kit/react';
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
 import { FormAttachment } from './form-attachment';
 import { throwError } from '@/shared/utils/throw-error';
 import { formatFileSize } from '@/shared/utils/format-file-size';
+import { cn } from 'cn';
 
 type Post = Omit<components['schemas']['PostUpdateRequest'], 'files'>;
 type Attachment = NonNullable<Post['attachments'][number]>;
@@ -76,49 +77,41 @@ const SortableFormAttachment = ({
   id,
   index,
   fileOrAttachment,
+  src,
   onClickRemoveByIndex,
 }: {
   id: string;
   index: number;
   fileOrAttachment: FileOrAttachment;
+  src: string;
   onClickRemoveByIndex: (index: number) => void;
 }) => {
-  const { handleRef, ref } = useSortable({ id, index });
-  const [fileObjectUrl] = useState(() => {
-    return fileOrAttachment instanceof File ? URL.createObjectURL(fileOrAttachment) : undefined;
-  });
-
-  useEffect(() => {
-    return () => {
-      if (fileObjectUrl) {
-        URL.revokeObjectURL(fileObjectUrl);
-      }
-    };
-  }, [fileObjectUrl]);
-
-  const source = fileOrAttachment instanceof File ? fileObjectUrl : fileOrAttachment.src;
   const format = useFormatter();
   const t = useTranslations('FormPostAttachments');
+  const { value, unit, maximumFractionDigits } = formatFileSize(fileOrAttachment.size);
+  // Preview props travel as sortable data so `DragOverlay` can render the same attachment.
+  const preview = {
+    src,
+    type: fileOrAttachmentToType(fileOrAttachment),
+    name: fileOrAttachment.name,
+    fileSize: t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit }),
+  };
+  const { handleRef, ref, isDragSource } = useSortable({ id, index, data: preview });
 
-  if (!source) {
+  if (!src) {
     return null;
   }
-
-  const { value, unit, maximumFractionDigits } = formatFileSize(fileOrAttachment.size);
-  const fileSize = t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit });
 
   return (
     <FormAttachment
       ref={ref}
       handleRef={handleRef}
-      src={source}
-      type={fileOrAttachmentToType(fileOrAttachment)}
-      name={fileOrAttachment.name}
-      fileSize={fileSize}
+      {...preview}
       onClickRemove={() => {
         onClickRemoveByIndex(index);
       }}
-      className="w-full"
+      // The overlay shows the dragged copy; the original only keeps its slot.
+      className={cn('w-full', isDragSource && 'invisible')}
     />
   );
 };
@@ -126,10 +119,12 @@ const SortableFormAttachment = ({
 // Keep drag-and-drop previews mounted and out of text-only form renders.
 const FormPostAttachments = memo(function FormPostAttachments({
   attachments,
+  fileToPreviewSrc,
   onClickRemoveByIndex,
   onDragEnd,
 }: {
   attachments: Array<FileOrAttachment>;
+  fileToPreviewSrc: Map<File, string>;
   onClickRemoveByIndex: (index: number) => void;
   onDragEnd: ComponentProps<typeof DragDropProvider>['onDragEnd'];
 }) {
@@ -143,11 +138,31 @@ const FormPostAttachments = memo(function FormPostAttachments({
               index={index}
               key={fileOrAttachmentToKey(fileOrAttachment)}
               fileOrAttachment={fileOrAttachment}
+              src={
+                fileOrAttachment instanceof File
+                  ? (fileToPreviewSrc.get(fileOrAttachment) ?? throwError())
+                  : fileOrAttachment.src
+              }
               onClickRemoveByIndex={onClickRemoveByIndex}
             />
           );
         })}
       </div>
+      {/* Overlay keeps the list item a plain in-flow element (no popover/placeholder), which Safari lays out wrong on drop. */}
+      {/* No drop animation: Safari animates the overlay towards a stale position. */}
+      <DragOverlay className="empty:hidden" dropAnimation={null}>
+        {(source) => {
+          return (
+            <FormAttachment
+              {...(source.data as ComponentProps<typeof FormAttachment>)}
+              ref={undefined}
+              handleRef={undefined}
+              onClickRemove={undefined}
+              className="w-full"
+            />
+          );
+        }}
+      </DragOverlay>
     </DragDropProvider>
   );
 });
@@ -181,6 +196,31 @@ export const FormPost = ({
   const [modelFilesAndAttachments, setModelFilesAndAttachments] = useState<Array<FileOrAttachment>>(
     defaultValues.attachments,
   );
+  // File identity keeps previews stable across reorders and sortable remounts.
+  const [fileToPreviewSource] = useState(() => {
+    return new Map<File, string>();
+  });
+
+  // Release only removed uploads after commit; reordering retains every existing URL.
+  useEffect(() => {
+    for (const [file, url] of fileToPreviewSource) {
+      if (!modelFilesAndAttachments.includes(file)) {
+        URL.revokeObjectURL(url);
+        fileToPreviewSource.delete(file);
+      }
+    }
+  }, [modelFilesAndAttachments, fileToPreviewSource]);
+
+  // Unmount also releases pending uploads; StrictMode's initial replay has no uploaded URLs.
+  useEffect(() => {
+    return () => {
+      for (const url of fileToPreviewSource.values()) {
+        URL.revokeObjectURL(url);
+      }
+
+      fileToPreviewSource.clear();
+    };
+  }, [fileToPreviewSource]);
 
   const isValid = modelText.length > 0 || modelFilesAndAttachments.length > 0;
   const isChanged =
@@ -224,6 +264,24 @@ export const FormPost = ({
     inputRef.current?.click();
   };
 
+  /** Allocate once per added file outside React updaters, which StrictMode may replay. */
+  const addFiles = (files: Array<File>) => {
+    const usedNames = new Set(
+      modelFilesAndAttachments.map((attachment) => {
+        return attachment.name;
+      }),
+    );
+    const addedFiles = files.map((file) => {
+      const namedFile = fileWithUniqueName(file, usedNames);
+      fileToPreviewSource.set(namedFile, URL.createObjectURL(namedFile));
+      return namedFile;
+    });
+
+    setModelFilesAndAttachments((attachments) => {
+      return [...attachments, ...addedFiles];
+    });
+  };
+
   const onChangeInputFiles: ComponentProps<'input'>['onChange'] = (event) => {
     const files = [...(event.currentTarget.files ?? [])];
 
@@ -231,20 +289,7 @@ export const FormPost = ({
       return;
     }
 
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      const usedNames = new Set(
-        modelFilesAndAttachments.map((fileOrAttachment) => {
-          return fileOrAttachment.name;
-        }),
-      );
-
-      return [
-        ...modelFilesAndAttachments,
-        ...files.map((file) => {
-          return fileWithUniqueName(file, usedNames);
-        }),
-      ];
-    });
+    addFiles(files);
 
     event.currentTarget.value = '';
   };
@@ -263,20 +308,7 @@ export const FormPost = ({
     }
 
     event.preventDefault();
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      const usedNames = new Set(
-        modelFilesAndAttachments.map((fileOrAttachment) => {
-          return fileOrAttachment.name;
-        }),
-      );
-
-      return [
-        ...modelFilesAndAttachments,
-        ...files.map((file) => {
-          return fileWithUniqueName(file, usedNames);
-        }),
-      ];
-    });
+    addFiles(files);
   };
 
   const _onSubmit: ComponentProps<'form'>['onSubmit'] = async (event) => {
@@ -318,8 +350,8 @@ export const FormPost = ({
   }, []);
 
   const onClickRemoveByIndex = useCallback((index: number) => {
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      return modelFilesAndAttachments.toSpliced(index, 1);
+    setModelFilesAndAttachments((attachments) => {
+      return attachments.toSpliced(index, 1);
     });
   }, []);
 
@@ -330,10 +362,10 @@ export const FormPost = ({
       return;
     }
 
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      return modelFilesAndAttachments
-        .toSpliced(source.initialIndex, 1)
-        .toSpliced(source.index, 0, modelFilesAndAttachments[source.initialIndex] ?? throwError());
+    // Snapshot mutable dnd-kit indexes before React runs the updater.
+    const { initialIndex, index } = source;
+    setModelFilesAndAttachments((attachments) => {
+      return attachments.toSpliced(initialIndex, 1).toSpliced(index, 0, attachments[initialIndex] ?? throwError());
     });
   }, []);
 
@@ -362,6 +394,7 @@ export const FormPost = ({
         <div className="flex flex-col gap-2">
           <FormPostAttachments
             attachments={modelFilesAndAttachments}
+            fileToPreviewSrc={fileToPreviewSource}
             onClickRemoveByIndex={onClickRemoveByIndex}
             onDragEnd={onDragEnd}
           />

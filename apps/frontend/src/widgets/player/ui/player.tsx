@@ -231,7 +231,7 @@ const PlayerControls = () => {
         {buttons.map((button, index) => {
           return (
             <li key={index}>
-              <Button size="lg" disabled={button.disabled} aria-label={button.ariaLabel} onClick={button.onClick}>
+              <Button disabled={button.disabled} aria-label={button.ariaLabel} onClick={button.onClick}>
                 <button.Icon />
               </Button>
             </li>

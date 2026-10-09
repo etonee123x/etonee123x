@@ -153,7 +153,7 @@ export const ContactMeForm = () => {
             />
             <FieldDescription className="text-end">{contact.length} / 320</FieldDescription>
           </Field>
-          <Button className="w-full" disabled={isPending} size="lg" type="submit">
+          <Button className="w-full" disabled={isPending} type="submit">
             {isPending ? (
               <>
                 {t('sendingMessage')}

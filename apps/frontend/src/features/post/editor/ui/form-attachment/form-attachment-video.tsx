@@ -35,7 +35,7 @@ export const FormAttachmentVideo = ({
       <AttachmentActions>
         <AttachmentAction
           className="cursor-grab group-not-has-[>:nth-child(2)]/form-post-attachments:hidden"
-          size="lg"
+          size="icon"
           ref={handleRef}
         >
           <Grip />

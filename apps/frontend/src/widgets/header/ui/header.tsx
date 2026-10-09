@@ -27,7 +27,7 @@ export const Header = async ({ className }: Readonly<HTMLProps<HTMLDivElement>>)
 
   return (
     <HeaderContainer className={cn('flex items-start gap-2 py-1', className)}>
-      <div className="-ms-2.5 flex min-w-0 flex-1 flex-wrap items-center gap-y-1">
+      <div className="-ms-2.5 mt-1 flex min-w-0 flex-1 flex-wrap items-center gap-y-1">
         <BrandLink>{t('etonee123x')}</BrandLink>
         <NavigationMenu className="min-w-0 max-w-none flex-1 basis-auto justify-start">
           <NavigationMenuList className="w-full min-w-0 flex-wrap justify-start">
