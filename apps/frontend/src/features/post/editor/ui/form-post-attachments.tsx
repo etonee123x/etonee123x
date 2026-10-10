@@ -1,10 +1,11 @@
 'use client';
 
-import { extensionToFileType, FILE_TYPES } from '@/entities/file';
+import { extensionToFileType } from '@/entities/file';
 import type { components } from '@/shared/api/openapi';
 import { Button } from '@/shared/ui/ds/button';
 import { AttachmentAction } from '@/shared/ui/ds/attachment';
 import { formatFileSize } from '@/shared/utils/format-file-size';
+import { useGalleryContext, type GalleryItem } from '@/shared/lib/gallery';
 import { arrayMove, arraySwap } from '@dnd-kit/helpers';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import { isSortable, useSortable } from '@dnd-kit/react/sortable';
@@ -23,6 +24,41 @@ const attachmentKey = (attachment: File | Attachment) => {
     : [attachment.name, attachment.src].join('-');
 };
 
+/** Keep local upload classification consistent between preview selection and gallery contents. */
+const getAttachmentType = (attachment: File | Attachment) => {
+  if (!(attachment instanceof File)) {
+    return attachment.fileType;
+  }
+
+  const extension = /^[^/]+\/(?<extension>.+)$/.exec(attachment.type)?.groups?.extension ?? null;
+  return extensionToFileType(extension);
+};
+
+/** Convert a marked preview element to gallery data using its intrinsic media dimensions. */
+const elementToGalleryItem = (preview: Element): GalleryItem | null => {
+  if (preview instanceof HTMLImageElement) {
+    return {
+      src: preview.currentSrc || preview.src,
+      width: preview.naturalWidth,
+      height: preview.naturalHeight,
+      name: preview.dataset.attachmentName ?? '',
+      type: 'image',
+    };
+  }
+
+  if (preview instanceof HTMLVideoElement) {
+    return {
+      src: preview.currentSrc || preview.src,
+      width: preview.videoWidth,
+      height: preview.videoHeight,
+      name: preview.dataset.attachmentName ?? '',
+      type: 'video',
+    };
+  }
+
+  return null;
+};
+
 const SortableFormAttachment = ({
   attachment,
   src,
@@ -30,6 +66,7 @@ const SortableFormAttachment = ({
   count,
   onRemove,
   onSwap,
+  onClickPreview,
 }: {
   attachment: File | Attachment;
   src: string;
@@ -37,6 +74,7 @@ const SortableFormAttachment = ({
   count: number;
   onRemove: (index: number) => void;
   onSwap: (index: number, direction: -1 | 1) => void;
+  onClickPreview: ComponentProps<'button'>['onClick'];
 }) => {
   const format = useFormatter();
   const t = useTranslations('FormPostAttachments');
@@ -44,23 +82,22 @@ const SortableFormAttachment = ({
   const { value, unit, maximumFractionDigits } = formatFileSize(attachment.size);
   const fileSize = t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit });
 
-  const extension =
-    attachment instanceof File ? /^[^/]+\/(?<extension>.+)$/.exec(attachment.type)?.groups?.extension : undefined;
-
   const preview = {
     src,
     name: attachment.name,
-    type:
-      attachment instanceof File
-        ? (extensionToFileType(`.${extension ?? ''}`) ?? FILE_TYPES.UNKNOWN)
-        : attachment.fileType,
+    type: getAttachmentType(attachment),
     fileSize,
   };
 
   const { handleRef, ref, isDragSource } = useSortable({ id: attachmentKey(attachment), index, data: preview });
 
   return (
-    <FormAttachment {...preview} ref={ref} className={cn('w-full', isDragSource && 'invisible')}>
+    <FormAttachment
+      {...preview}
+      ref={ref}
+      className={cn('w-full', isDragSource && 'invisible')}
+      onClickPreview={onClickPreview}
+    >
       {/* All list actions live here; media components only place the children slot. */}
       <AttachmentAction
         type="button"
@@ -124,6 +161,7 @@ export const FormPostAttachments = memo(function FormPostAttachments({
   const [, refreshPreviews] = useReducer((version: number) => {
     return version + 1;
   }, 0);
+  const { open, setOnClose } = useGalleryContext();
 
   // Allocate browser resources after commit, never during render or replayable model updaters.
   useEffect(() => {
@@ -183,6 +221,28 @@ export const FormPostAttachments = memo(function FormPostAttachments({
     return null;
   }
 
+  /** Read gallery contents and intrinsic dimensions from current media elements. */
+  const onClickPreview: ComponentProps<'button'>['onClick'] = ({ currentTarget }) => {
+    const attachmentList = currentTarget.closest('[data-attachment-list]');
+    if (!attachmentList) {
+      return;
+    }
+
+    const clickedPreviewElement = currentTarget.querySelector('[data-attachment-preview]');
+    const galleryItem = clickedPreviewElement && elementToGalleryItem(clickedPreviewElement);
+    if (!galleryItem) {
+      return;
+    }
+
+    const galleryItems = [...attachmentList.querySelectorAll('[data-attachment-preview]')].flatMap((preview) => {
+      const item = elementToGalleryItem(preview);
+      return item ? [item] : [];
+    });
+
+    setOnClose(null);
+    open(galleryItem, galleryItems);
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <DragDropProvider onDragEnd={onDragEnd}>
@@ -199,6 +259,7 @@ export const FormPostAttachments = memo(function FormPostAttachments({
                 count={attachments.length}
                 onRemove={onRemove}
                 onSwap={onSwap}
+                onClickPreview={onClickPreview}
               />
             );
           })}

@@ -13,16 +13,33 @@ export const FormAttachmentImage = ({
   src,
   name,
   fileSize,
+  onClickPreview,
   children,
   ...props
 }: Pick<ComponentProps<typeof Image>, 'src'> & {
-  name: ComponentProps<typeof AttachmentTitle>['children'];
+  name: string;
   fileSize: string;
-} & ComponentProps<typeof Attachment>) => {
+  onClickPreview?: ComponentProps<'button'>['onClick'];
+} & Omit<ComponentProps<typeof Attachment>, 'onClick'>) => {
   return (
     <Attachment {...props}>
       <AttachmentMedia>
-        <Image width={40} height={40} className="h-full w-full object-contain" src={src} alt="" />
+        <button
+          type="button"
+          className="flex size-full cursor-zoom-in items-center justify-center"
+          aria-label={name}
+          onClick={onClickPreview}
+        >
+          <Image
+            width={40}
+            height={40}
+            className="h-full w-full object-contain"
+            src={src}
+            alt=""
+            data-attachment-preview
+            data-attachment-name={name}
+          />
+        </button>
       </AttachmentMedia>
       <AttachmentContent>
         <AttachmentTitle>{name}</AttachmentTitle>

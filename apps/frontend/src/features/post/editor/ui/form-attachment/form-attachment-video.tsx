@@ -12,16 +12,31 @@ export const FormAttachmentVideo = ({
   src,
   name,
   fileSize,
+  onClickPreview,
   children,
   ...props
 }: Pick<ComponentProps<'video'>, 'src'> & {
-  name: ComponentProps<typeof AttachmentTitle>['children'];
+  name: string;
   fileSize: string;
-} & ComponentProps<typeof Attachment>) => {
+  onClickPreview?: ComponentProps<'button'>['onClick'];
+} & Omit<ComponentProps<typeof Attachment>, 'onClick'>) => {
   return (
     <Attachment {...props}>
       <AttachmentMedia>
-        <video src={src} />
+        <button
+          type="button"
+          className="flex size-full cursor-zoom-in items-center justify-center"
+          aria-label={name}
+          onClick={onClickPreview}
+        >
+          <video
+            src={src}
+            preload="metadata"
+            className="size-full object-contain"
+            data-attachment-preview
+            data-attachment-name={name}
+          />
+        </button>
       </AttachmentMedia>
       <AttachmentContent>
         <AttachmentTitle>{name}</AttachmentTitle>

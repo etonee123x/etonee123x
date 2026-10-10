@@ -1,4 +1,4 @@
-import type { Attachment, AttachmentTitle } from '@/shared/ui/ds/attachment';
+import type { Attachment } from '@/shared/ui/ds/attachment';
 import { FILE_TYPES } from '@/entities/file';
 import { checkExhaustive } from '@/shared/utils/check-exhaustive';
 import dynamic from 'next/dynamic';
@@ -30,22 +30,24 @@ const FormAttachmentUnknown = dynamic(() => {
 
 export const FormAttachment = ({
   type,
+  onClickPreview,
   ...props
 }: {
   type: (typeof FILE_TYPES)[keyof typeof FILE_TYPES];
   src: string;
-  name: ComponentProps<typeof AttachmentTitle>['children'];
+  name: string;
   fileSize: string;
+  onClickPreview?: ComponentProps<'button'>['onClick'];
 } & Pick<ComponentProps<typeof Attachment>, 'children' | 'ref' | 'className'>) => {
   switch (type) {
     case FILE_TYPES.AUDIO: {
       return <FormAttachmentAudio {...props} />;
     }
     case FILE_TYPES.IMAGE: {
-      return <FormAttachmentImage {...props} />;
+      return <FormAttachmentImage {...props} onClickPreview={onClickPreview} />;
     }
     case FILE_TYPES.VIDEO: {
-      return <FormAttachmentVideo {...props} />;
+      return <FormAttachmentVideo {...props} onClickPreview={onClickPreview} />;
     }
     case FILE_TYPES.UNKNOWN: {
       return <FormAttachmentUnknown {...props} />;
