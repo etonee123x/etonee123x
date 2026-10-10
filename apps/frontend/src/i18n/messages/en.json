@@ -116,6 +116,8 @@
     "clearAll": "Clear all"
   },
   "FormPostAttachments": {
+    "moveAttachmentUp": "Move attachment up",
+    "moveAttachmentDown": "Move attachment down",
     "fileSize": "{value} {unit}"
   },
   "FormPostCreate": {

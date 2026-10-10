@@ -1,4 +1,4 @@
-import type { Attachment, AttachmentAction, AttachmentTitle } from '@/shared/ui/ds/attachment';
+import type { Attachment, AttachmentTitle } from '@/shared/ui/ds/attachment';
 import { FILE_TYPES } from '@/entities/file';
 import { checkExhaustive } from '@/shared/utils/check-exhaustive';
 import dynamic from 'next/dynamic';
@@ -36,11 +36,7 @@ export const FormAttachment = ({
   src: string;
   name: ComponentProps<typeof AttachmentTitle>['children'];
   fileSize: string;
-  className: ComponentProps<typeof Attachment>['className'];
-  onClickRemove: ComponentProps<typeof AttachmentAction>['onClick'];
-  ref: ComponentProps<typeof Attachment>['ref'];
-  handleRef: ComponentProps<typeof AttachmentAction>['ref'];
-}) => {
+} & Pick<ComponentProps<typeof Attachment>, 'children' | 'ref' | 'className'>) => {
   switch (type) {
     case FILE_TYPES.AUDIO: {
       return <FormAttachmentAudio {...props} />;

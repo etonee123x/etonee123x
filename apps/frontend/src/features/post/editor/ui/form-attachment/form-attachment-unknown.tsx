@@ -1,26 +1,22 @@
 import {
   Attachment,
-  AttachmentAction,
   AttachmentActions,
   AttachmentContent,
   AttachmentDescription,
   AttachmentMedia,
   AttachmentTitle,
 } from '@/shared/ui/ds/attachment';
-import { X, FileQuestionMark, Grip } from 'lucide-react';
+import { FileQuestionMark } from 'lucide-react';
 import { type ComponentProps } from 'react';
 
 export const FormAttachmentUnknown = ({
   name,
   fileSize,
-  onClickRemove,
-  handleRef,
+  children,
   ...props
 }: {
   name: ComponentProps<typeof AttachmentTitle>['children'];
   fileSize: string;
-  onClickRemove: ComponentProps<typeof AttachmentAction>['onClick'];
-  handleRef: ComponentProps<typeof AttachmentAction>['ref'];
 } & ComponentProps<typeof Attachment>) => {
   return (
     <Attachment {...props}>
@@ -32,16 +28,8 @@ export const FormAttachmentUnknown = ({
         <AttachmentDescription>{fileSize}</AttachmentDescription>
       </AttachmentContent>
       <AttachmentActions>
-        <AttachmentAction
-          className="cursor-grab group-not-has-[>:nth-child(2)]/form-post-attachments:hidden"
-          size="icon"
-          ref={handleRef}
-        >
-          <Grip />
-        </AttachmentAction>
-        <AttachmentAction className="ms-2" variant="destructive" onClick={onClickRemove}>
-          <X />
-        </AttachmentAction>
+        {/* Controls are composed once by FormAttachment, independently of the media type. */}
+        {children}
       </AttachmentActions>
     </Attachment>
   );

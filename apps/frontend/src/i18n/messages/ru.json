@@ -117,6 +117,8 @@
     "clearAll": "Очистить все"
   },
   "FormPostAttachments": {
+    "moveAttachmentUp": "Переместить вложение вверх",
+    "moveAttachmentDown": "Переместить вложение вниз",
     "fileSize": "{value} {unit}"
   },
   "FormPostCreate": {
