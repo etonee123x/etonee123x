@@ -231,7 +231,7 @@ const PlayerControls = () => {
         {buttons.map((button, index) => {
           return (
             <li key={index}>
-              <Button disabled={button.disabled} aria-label={button.ariaLabel} onClick={button.onClick}>
+              <Button size="icon" disabled={button.disabled} aria-label={button.ariaLabel} onClick={button.onClick}>
                 <button.Icon />
               </Button>
             </li>
@@ -314,7 +314,7 @@ export const Player = () => {
   return (
     <section className="layout-container flex flex-col justify-center bg-background z-player border-t border-primary pt-4 pb-6 w-full sticky bottom-0">
       <Button
-        className="absolute inset-e-2 border-primary top-0 -translate-y-1/2!"
+        className="absolute inset-e-4 border-primary top-0 -translate-y-1/2!"
         aria-label={t('closePlayer')}
         size="icon"
         variant="secondary"
