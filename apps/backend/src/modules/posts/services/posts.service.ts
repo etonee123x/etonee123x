@@ -8,6 +8,8 @@ import type { FilesService } from '@/infrastructure/files/services/files.service
 import { AppError } from '@/shared/errors/app.error';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
 import type { PostSlugGenerator } from './post-slug-generator';
+import type { TagRevalidator } from '@/infrastructure/revalidation/tag-revalidator';
+import { logger } from '@/shared/logger';
 
 export class PostsService {
   /**
@@ -28,11 +30,29 @@ export class PostsService {
   private readonly postsRepo: PostsRepo;
   private readonly filesService: FilesService;
   private readonly postSlugGenerator: PostSlugGenerator;
+  private readonly tagRevalidator: TagRevalidator;
 
-  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService; postSlugGenerator: PostSlugGenerator }) {
+  constructor(parameters: {
+    postsRepo: PostsRepo;
+    filesService: FilesService;
+    postSlugGenerator: PostSlugGenerator;
+    tagRevalidator: TagRevalidator;
+  }) {
     this.postsRepo = parameters.postsRepo;
     this.filesService = parameters.filesService;
     this.postSlugGenerator = parameters.postSlugGenerator;
+    this.tagRevalidator = parameters.tagRevalidator;
+  }
+
+  /**
+  Preserve committed post mutations if the separate Next.js cache request fails.
+  */
+  private async revalidatePosts(): Promise<void> {
+    try {
+      await this.tagRevalidator.revalidate('posts');
+    } catch (error) {
+      logger.warn(`Posts cache revalidation failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   private async getKeyByFile(file: Express.Multer.File) {
@@ -150,6 +170,7 @@ export class PostsService {
     this.validateAttachmentsSize([], parameters.files);
 
     const uploadedAttachments: Array<StoredFile> = [];
+    let post: Post;
 
     try {
       for (const file of parameters.files) {
@@ -160,7 +181,7 @@ export class PostsService {
         uploadedAttachments.push(uploaded);
       }
 
-      return await this.postsRepo.createPost({
+      post = await this.postsRepo.createPost({
         slug: await this.getPostSlug(parameters.text),
         attachments: uploadedAttachments,
         text: parameters.text,
@@ -178,6 +199,9 @@ export class PostsService {
 
       throw error;
     }
+
+    await this.revalidatePosts();
+    return post;
   }
 
   async updatePostById(parameters: {
@@ -193,6 +217,7 @@ export class PostsService {
 
     const newlyUploaded: Array<StoredFile> = [];
     let fileIndex = 0;
+    let updatedPost: Post;
 
     try {
       const attachments: Array<StoredFile> = [];
@@ -221,7 +246,7 @@ export class PostsService {
         attachments.push(uploaded);
       }
 
-      const post = await this.postsRepo.updatePostById({
+      updatedPost = await this.postsRepo.updatePostById({
         id: parameters.id,
         text: parameters.text,
         attachments,
@@ -242,8 +267,6 @@ export class PostsService {
           }
         }),
       );
-
-      return post;
     } catch (error) {
       await Promise.all(
         newlyUploaded.map(async (attachment) => {
@@ -257,6 +280,9 @@ export class PostsService {
 
       throw error;
     }
+
+    await this.revalidatePosts();
+    return updatedPost;
   }
 
   async deletePostById(parameters: { id: string }): Promise<Post> {
@@ -272,6 +298,7 @@ export class PostsService {
       }),
     );
 
+    await this.revalidatePosts();
     return post;
   }
 }

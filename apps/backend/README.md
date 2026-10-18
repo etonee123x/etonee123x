@@ -100,6 +100,8 @@ multipart upload
 | `NODE_ENV` | Окружение приложения | `development` |
 | `PORT` | Порт сервера | `4000` |
 | `SECRET_KEY` | Ключ для JWT | `a-string-secret-at-least-256-bits-long` |
+| `REVALIDATE_SECRET` | Общий отдельный секрет backend и Next.js для инвалидации кэша | `replace-with-a-distinct-revalidate-secret` |
+| `NEXT_SERVER_URL` | Базовый URL Next.js для внутренних запросов | `http://localhost:3000` |
 | `AUTH_TOKEN_MAX_LIFETIME_MINUTES` | Максимальный срок жизни JWT в минутах | `10` |
 | `DATABASE_PATH` | Путь к runtime-данным | `../../infra/database` |
 | `CONTENT_PATH` | Каталог с медиа-контентом | `../../infra/content` |
