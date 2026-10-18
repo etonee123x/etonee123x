@@ -1,19 +1,22 @@
 type: object
+description: The request body must not exceed 220 MiB. Combined uploaded file data must not exceed 200 MiB.
 properties:
   text:
     type: string
-  attachments:
+    maxLength: 10000
+  attachmentsIds:
     type: array
+    description: Existing attachment name IDs to retain in order; null slots are replaced by uploaded files.
     items:
-      oneOf:
-        - $ref: ./PostAttachment.yaml
-        - type: "null"
+      type: string
+      nullable: true
   files:
     type: array
+    description: Combined uploaded file data must not exceed 200 MiB.
     items:
       type: string
       format: binary
 required:
   - text
-  - attachments
+  - attachmentsIds
   - files

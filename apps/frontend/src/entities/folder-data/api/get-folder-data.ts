@@ -9,6 +9,8 @@ export const getFolderData = async (query: NonNullable<paths['/folder-data']['ge
         path: query.path && decodeURIComponent(query.path),
       },
     },
+    // Keep folder results separate by their full URL without changing browser HTTP caching.
+    next: { revalidate: 60, tags: ['folder-data'] },
   });
 
   if (response.data) {

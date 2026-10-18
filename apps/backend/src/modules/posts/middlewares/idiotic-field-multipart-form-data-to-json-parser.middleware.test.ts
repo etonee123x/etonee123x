@@ -5,11 +5,11 @@ import { idioticFieldMultipartFormDataToJsonParser } from '@/modules/posts/middl
 
 describe('idioticFieldMultipartFormDataToJsonParser', () => {
   it('parses json string fields', () => {
-    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachments']);
+    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachmentsIds']);
 
     const request = {
       body: {
-        attachments: '[{"name":"a.mp3"}]',
+        attachmentsIds: '["a.mp3"]',
       },
     } as unknown as Express.Request;
 
@@ -18,16 +18,16 @@ describe('idioticFieldMultipartFormDataToJsonParser', () => {
     middleware(request, {} as Express.Response, next);
 
     const body = request.body as Record<string, unknown>;
-    expect(body.attachments).toEqual([{ name: 'a.mp3' }]);
+    expect(body.attachmentsIds).toEqual(['a.mp3']);
     expect(next).toHaveBeenCalledOnce();
   });
 
   it('throws AppError 400 when json parsing fails', () => {
-    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachments']);
+    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachmentsIds']);
 
     const request = {
       body: {
-        attachments: 'not-json',
+        attachmentsIds: 'not-json',
       },
     } as unknown as Express.Request;
 
@@ -35,16 +35,16 @@ describe('idioticFieldMultipartFormDataToJsonParser', () => {
 
     expect(() => {
       middleware(request, {} as Express.Response, next);
-    }).toThrow("Invalid JSON in field 'attachments'");
+    }).toThrow("Invalid JSON in field 'attachmentsIds'");
     expect(next).not.toHaveBeenCalled();
   });
 
   it('leaves non-string values untouched', () => {
-    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachments']);
+    const middleware = idioticFieldMultipartFormDataToJsonParser(['attachmentsIds']);
 
     const request = {
       body: {
-        attachments: [{ id: 1 }],
+        attachmentsIds: ['file-id'],
       },
     } as unknown as Express.Request;
 
@@ -53,7 +53,7 @@ describe('idioticFieldMultipartFormDataToJsonParser', () => {
     middleware(request, {} as Express.Response, next);
 
     const body = request.body as Record<string, unknown>;
-    expect(body.attachments).toEqual([{ id: 1 }]);
+    expect(body.attachmentsIds).toEqual(['file-id']);
     expect(next).toHaveBeenCalledOnce();
   });
 });

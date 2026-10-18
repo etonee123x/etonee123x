@@ -83,12 +83,15 @@ export class FsDatabaseFile<
   async writeEntityOrRow(id: string | undefined, entityOrRow: Entity | Row): Promise<Row> {
     await this.ensureInit();
 
+    // Existing rows carry metadata; new rows share one timestamp.
+    const hasMeta = '_meta' in entityOrRow;
+    const createdAt = hasMeta ? entityOrRow._meta.createdAt : FsDatabaseFile.getCreatedAt();
     const row = {
       ...entityOrRow,
       _meta: {
-        id: '_meta' in entityOrRow ? entityOrRow._meta.id : FsDatabaseFile.generateId(),
-        createdAt: '_meta' in entityOrRow ? entityOrRow._meta.createdAt : FsDatabaseFile.getCreatedAt(),
-        updatedAt: FsDatabaseFile.getUpdatedAt(),
+        id: hasMeta ? entityOrRow._meta.id : FsDatabaseFile.generateId(),
+        createdAt,
+        updatedAt: hasMeta ? FsDatabaseFile.getUpdatedAt() : createdAt,
       },
     } as Row;
 

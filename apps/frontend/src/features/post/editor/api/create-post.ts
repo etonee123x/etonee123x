@@ -1,6 +1,7 @@
 import { client } from '@/shared/api/client';
 import type { components } from '@/shared/api/openapi';
 
+/** Create through the authenticated backend before expiring every cached post listing. */
 export const createPost = async (
   data: Omit<components['schemas']['PostCreateRequest'], 'files'>,
   files: Array<File>,

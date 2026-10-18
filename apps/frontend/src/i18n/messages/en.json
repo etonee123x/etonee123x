@@ -9,6 +9,8 @@
     "questionIdeaOrRecommendation": "A question, an idea, or a recommendation — I read every message.",
     "yourMessage": "Your message",
     "messageIsRequired": "A message is required.",
+    "messageLength": "{count} / {max}",
+    "replyContactLength": "{count} / {max}",
     "sampleText": "Sample text",
     "whereCanIReply": "Where can I reply? (optional)",
     "yourEmailOrAnotherContact": "Your email or another contact",
@@ -113,9 +115,16 @@
   "FormPost": {
     "message": "Message...",
     "attachments": "Attachments",
-    "clearAll": "Clear all"
+    "clearAll": "Clear all",
+    "charactersUsed": "{count} / {max}",
+    "messageMustBeNoLongerThan": "Message must be no longer than {max} characters.",
+    "combinedFileSizeCannotExceed": "Combined file size cannot exceed {max}.",
+    "selectedFiles": "Selected files",
+    "selectedFilesSize": "{current} / {max}"
   },
   "FormPostAttachments": {
+    "moveAttachmentUp": "Move attachment up",
+    "moveAttachmentDown": "Move attachment down",
     "fileSize": "{value} {unit}"
   },
   "FormPostCreate": {

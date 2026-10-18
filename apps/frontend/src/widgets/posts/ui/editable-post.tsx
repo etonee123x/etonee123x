@@ -63,12 +63,21 @@ export const EditablePost = ({
             aria-label={t('confirm')}
             title={t('confirm')}
             type="submit"
+            size="icon"
             form={formPostId}
             disabled={!isEditFormValid}
+            key="confirm"
           >
             <Check />
           </Button>
-          <Button aria-label={t('cancel')} title={t('cancel')} variant="secondary" onClick={exitEditPost}>
+          <Button
+            size="icon"
+            aria-label={t('cancel')}
+            title={t('cancel')}
+            variant="secondary"
+            key="cancel"
+            onClick={exitEditPost}
+          >
             <X />
           </Button>
         </>
@@ -80,7 +89,9 @@ export const EditablePost = ({
         <Button
           aria-label={t('edit')}
           title={t('edit')}
+          size="icon"
           variant="secondary"
+          key="edit"
           onClick={() => {
             enterEditPostById(post._meta.id);
           }}
@@ -90,7 +101,9 @@ export const EditablePost = ({
         <Button
           aria-label={t('delete')}
           title={t('delete')}
+          size="icon"
           variant="destructive"
+          key="delete"
           onClick={() => {
             requestDeletePostById(post._meta.id);
           }}
