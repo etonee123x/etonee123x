@@ -100,3 +100,9 @@ post:
         application/json:
           schema:
             $ref: ../components/schemas/Error401.yaml
+    "413":
+      description: Payload Too Large
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Error413.yaml

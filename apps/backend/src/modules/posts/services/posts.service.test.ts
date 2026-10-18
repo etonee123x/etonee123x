@@ -57,9 +57,12 @@ const buildService = () => {
 };
 
 const buildFile = (fileName: string, content: string) => {
+  const buffer = Buffer.from(content);
+
   return {
     originalname: fileName,
-    buffer: Buffer.from(content),
+    buffer,
+    size: buffer.byteLength,
   } as Express.Multer.File;
 };
 
@@ -234,24 +237,40 @@ describe('PostsService', () => {
     });
   });
 
+  it('rejects combined new file sizes above the limit before create uploads', async () => {
+    const { service, filesService } = buildService();
+
+    await expect(
+      service.createPost({
+        text: 'post',
+        files: [
+          { ...buildFile('large.bin', 'A'), size: PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES },
+          { ...buildFile('extra.bin', 'B'), size: 1 },
+        ],
+      }),
+    ).rejects.toMatchObject({ statusCode: 413 });
+
+    expect(filesService.upload).not.toHaveBeenCalled();
+  });
+
   it('updatePostById uploads null slots, keeps existing, deletes removed, updates repo', async () => {
     const { service, postsRepo, filesService } = buildService();
 
-    const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3' };
-    const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3' };
+    const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3', size: 1 };
+    const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3', size: 1 };
     const newAttachment = { src: '/uploads/new.mp3', name: 'new.mp3' };
     const updatedPost = { id: 'updated' };
     postsRepo.findPostById.mockResolvedValue({ attachments: [oldKeep, oldDrop] });
     filesService.upload.mockResolvedValue(newAttachment);
     postsRepo.updatePostById.mockResolvedValue(updatedPost);
 
-    const attachmentsInput = [oldKeep, null];
+    const attachmentsInput = [oldKeep.name, null];
 
     await expect(
       service.updatePostById({
         id: 'post-1',
         text: 'updated text',
-        attachments: attachmentsInput as never,
+        attachmentsIds: attachmentsInput,
         files: [buildFile('new.mp3', 'N')],
       }),
     ).resolves.toBe(updatedPost);
@@ -266,6 +285,28 @@ describe('PostsService', () => {
       text: 'updated text',
       attachments: [oldKeep, newAttachment],
     });
+  });
+
+  it('rejects update when retained and newly uploaded files exceed the combined limit', async () => {
+    const { service, postsRepo, filesService } = buildService();
+    const retainedAttachment = {
+      src: '/uploads/keep.mp3',
+      name: 'keep.mp3',
+      size: PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES - 1,
+    };
+    postsRepo.findPostById.mockResolvedValue({ attachments: [retainedAttachment] });
+
+    await expect(
+      service.updatePostById({
+        id: 'post-1',
+        text: 'updated text',
+        attachmentsIds: [retainedAttachment.name],
+        files: [{ ...buildFile('new.mp3', 'N'), size: 2 }],
+      }),
+    ).rejects.toMatchObject({ statusCode: 413 });
+
+    expect(filesService.upload).not.toHaveBeenCalled();
+    expect(postsRepo.updatePostById).not.toHaveBeenCalled();
   });
 
   it('createPost cleans up uploaded files if repo creation fails', async () => {
@@ -294,7 +335,7 @@ describe('PostsService', () => {
       service.updatePostById({
         id: 'post-1',
         text: 'updated text',
-        attachments: [null],
+        attachmentsIds: [null],
         files: [buildFile('new.mp3', 'N')],
       }),
     ).rejects.toThrow('db update error');
@@ -348,7 +389,7 @@ describe('PostsService', () => {
       service.updatePostById({
         id: 'post-1',
         text: 'updated',
-        attachments: [null],
+        attachmentsIds: [null],
         files: [buildFile('new.mp3', 'N')],
       }),
     ).rejects.toThrow('upload failed');

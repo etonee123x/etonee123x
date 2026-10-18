@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/shared/ui/ds/button';
+import { Field, FieldDescription, FieldError } from '@/shared/ui/ds/field';
 import { Textarea } from '@/shared/ui/ds/textarea';
 import { type components } from '@/shared/api/openapi';
 import { FilePlus2 } from 'lucide-react';
@@ -17,9 +18,10 @@ import {
 } from 'react';
 import { FormPostAttachments } from './form-post-attachments';
 import { throwError } from '@/shared/utils/throw-error';
+import { MAX_POST_TEXT_LENGTH, MAX_POST_UPLOAD_BYTES } from '../model/post-upload-limits';
 
 type Post = Omit<components['schemas']['PostUpdateRequest'], 'files'>;
-type Attachment = NonNullable<Post['attachments'][number]>;
+type Attachment = components['schemas']['StoredFile'];
 type FileOrAttachment = File | Attachment;
 
 const onKeyDownTextarea: ComponentProps<typeof Textarea>['onKeyDown'] = (event) => {
@@ -85,7 +87,18 @@ export const FormPost = ({
   const [modelFilesAndAttachments, setModelFilesAndAttachments] = useState<Array<FileOrAttachment>>(
     defaultValues.attachments,
   );
-  const isValid = modelText.length > 0 || modelFilesAndAttachments.length > 0;
+
+  const totalUploadSize = modelFilesAndAttachments.reduce((total, attachment) => {
+    return total + attachment.size;
+  }, 0);
+
+  const isTextInvalid = modelText.length > MAX_POST_TEXT_LENGTH;
+
+  const isValid =
+    !isTextInvalid &&
+    totalUploadSize <= MAX_POST_UPLOAD_BYTES &&
+    (modelText.length > 0 || modelFilesAndAttachments.length > 0);
+
   const isChanged =
     modelText !== defaultValues.text ||
     modelFilesAndAttachments.length !== defaultValues.attachments.length ||
@@ -135,8 +148,7 @@ export const FormPost = ({
       }),
     );
     const addedFiles = files.map((file) => {
-      const namedFile = fileWithUniqueName(file, usedNames);
-      return namedFile;
+      return fileWithUniqueName(file, usedNames);
     });
 
     setModelFilesAndAttachments((attachments) => {
@@ -190,8 +202,8 @@ export const FormPost = ({
         event.nativeEvent,
         {
           text: modelText,
-          attachments: modelFilesAndAttachments.map((fileOrAttachment) => {
-            return fileOrAttachment instanceof File ? null : fileOrAttachment;
+          attachmentsIds: modelFilesAndAttachments.map((fileOrAttachment) => {
+            return fileOrAttachment instanceof File ? null : fileOrAttachment.name;
           }),
         },
         modelFilesAndAttachments.filter((fileOrAttachment): fileOrAttachment is File => {
@@ -210,17 +222,27 @@ export const FormPost = ({
   return (
     <form {...props} className="flex flex-col gap-4" onSubmit={_onSubmit}>
       <div className="flex gap-2">
-        <Textarea
-          ref={textareaRef}
-          aria-label={t('message')}
-          placeholder={t('message')}
-          value={modelText}
-          onChange={(event) => {
-            setModelText(event.target.value);
-          }}
-          onKeyDown={onKeyDownTextarea}
-          onPaste={onPasteTextarea}
-        />
+        <Field data-invalid={isTextInvalid}>
+          <Textarea
+            ref={textareaRef}
+            aria-label={t('message')}
+            aria-invalid={isTextInvalid}
+            placeholder={t('message')}
+            maxLength={MAX_POST_TEXT_LENGTH}
+            value={modelText}
+            onChange={(event) => {
+              setModelText(event.target.value);
+            }}
+            onKeyDown={onKeyDownTextarea}
+            onPaste={onPasteTextarea}
+          />
+          <div className="flex items-baseline justify-between gap-4">
+            {isTextInvalid && <FieldError>{t('messageMustBeNoLongerThan', { max: MAX_POST_TEXT_LENGTH })}</FieldError>}
+            <FieldDescription className="ms-auto" aria-live="polite">
+              {t('charactersUsed', { count: modelText.length, max: MAX_POST_TEXT_LENGTH })}
+            </FieldDescription>
+          </div>
+        </Field>
         <div className="sticky top-[calc(var(--spacing-header-height)+var(--spacing)*2)] flex flex-col gap-2 h-min">
           <Button className="h-auto p-2" onClick={onClickButtonAddAttachment}>
             <FilePlus2 className="size-8" />
@@ -228,8 +250,9 @@ export const FormPost = ({
           <input ref={inputRef} tabIndex={-1} multiple type="file" className="sr-only" onChange={onChangeInputFiles} />
         </div>
       </div>
-      {/* Keep the resource owner mounted even when the controlled list is cleared. */}
-      <FormPostAttachments attachments={modelFilesAndAttachments} onChange={setModelFilesAndAttachments} />
+      {modelFilesAndAttachments.length > 0 && (
+        <FormPostAttachments attachments={modelFilesAndAttachments} onChange={setModelFilesAndAttachments} />
+      )}
     </form>
   );
 };

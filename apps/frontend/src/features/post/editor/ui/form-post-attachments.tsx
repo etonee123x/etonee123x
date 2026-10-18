@@ -4,7 +4,9 @@ import { extensionToFileType } from '@/entities/file';
 import type { components } from '@/shared/api/openapi';
 import { Button } from '@/shared/ui/ds/button';
 import { AttachmentAction } from '@/shared/ui/ds/attachment';
+import { Field, FieldDescription, FieldError } from '@/shared/ui/ds/field';
 import { formatFileSize } from '@/shared/utils/format-file-size';
+import { Progress, ProgressLabel } from '@/shared/ui/ds/progress';
 import { useGalleryContext, type GalleryItem } from '@/shared/lib/gallery';
 import { arrayMove, arraySwap } from '@dnd-kit/helpers';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
@@ -14,6 +16,8 @@ import { ArrowDown, ArrowUp, Grip, X } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type ComponentProps, type Dispatch, type SetStateAction, memo, useEffect, useReducer, useState } from 'react';
 import { FormAttachment } from './form-attachment';
+import { MAX_POST_UPLOAD_BYTES } from '../model/post-upload-limits';
+import { isNil } from '@/shared/utils/is-nil';
 
 type Attachment = components['schemas']['StoredFile'];
 
@@ -63,7 +67,7 @@ const SortableFormAttachment = ({
   attachment,
   src,
   index,
-  count,
+  attachmentsLength,
   onRemove,
   onSwap,
   onClickPreview,
@@ -71,7 +75,7 @@ const SortableFormAttachment = ({
   attachment: File | Attachment;
   src: string;
   index: number;
-  count: number;
+  attachmentsLength: number;
   onRemove: (index: number) => void;
   onSwap: (index: number, direction: -1 | 1) => void;
   onClickPreview: ComponentProps<'button'>['onClick'];
@@ -81,7 +85,6 @@ const SortableFormAttachment = ({
 
   const { value, unit, maximumFractionDigits } = formatFileSize(attachment.size);
   const fileSize = t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit });
-
   const preview = {
     src,
     name: attachment.name,
@@ -98,39 +101,37 @@ const SortableFormAttachment = ({
       className={cn('w-full', isDragSource && 'invisible')}
       onClickPreview={onClickPreview}
     >
-      {/* All list actions live here; media components only place the children slot. */}
-      <AttachmentAction
-        type="button"
-        size="icon"
-        aria-label={t('moveAttachmentUp')}
-        title={t('moveAttachmentUp')}
-        disabled={index === 0 || isDragSource}
-        onClick={() => {
-          onSwap(index, -1);
-        }}
-      >
-        <ArrowUp />
-      </AttachmentAction>
-      <AttachmentAction
-        type="button"
-        size="icon"
-        aria-label={t('moveAttachmentDown')}
-        title={t('moveAttachmentDown')}
-        disabled={index === count - 1 || isDragSource}
-        onClick={() => {
-          onSwap(index, 1);
-        }}
-      >
-        <ArrowDown />
-      </AttachmentAction>
-      <AttachmentAction
-        type="button"
-        className="cursor-grab group-not-has-[>:nth-child(2)]/form-post-attachments:hidden"
-        size="icon"
-        ref={handleRef}
-      >
-        <Grip />
-      </AttachmentAction>
+      {attachmentsLength > 1 && (
+        <>
+          <AttachmentAction
+            type="button"
+            size="icon"
+            aria-label={t('moveAttachmentUp')}
+            title={t('moveAttachmentUp')}
+            disabled={index === 0 || isDragSource}
+            onClick={() => {
+              onSwap(index, -1);
+            }}
+          >
+            <ArrowUp />
+          </AttachmentAction>
+          <AttachmentAction
+            type="button"
+            size="icon"
+            aria-label={t('moveAttachmentDown')}
+            title={t('moveAttachmentDown')}
+            disabled={index === attachmentsLength - 1 || isDragSource}
+            onClick={() => {
+              onSwap(index, 1);
+            }}
+          >
+            <ArrowDown />
+          </AttachmentAction>
+          <AttachmentAction type="button" className="cursor-grab" size="icon" ref={handleRef}>
+            <Grip />
+          </AttachmentAction>
+        </>
+      )}
       <AttachmentAction
         type="button"
         size="icon-sm"
@@ -155,13 +156,39 @@ export const FormPostAttachments = memo(function FormPostAttachments({
   onChange: Dispatch<SetStateAction<Array<File | Attachment>>>;
 }) {
   const t = useTranslations('FormPost');
+
+  const format = useFormatter();
+
   const [fileToPreviewSource] = useState(() => {
     return new Map<File, string>();
   });
+
   const [, refreshPreviews] = useReducer((version: number) => {
     return version + 1;
   }, 0);
+
   const { open, setOnClose } = useGalleryContext();
+
+  const totalUploadSize = attachments.reduce((total, attachment) => {
+    return total + attachment.size;
+  }, 0);
+  const exceedsTotalSize = totalUploadSize > MAX_POST_UPLOAD_BYTES;
+  const hasSizeError = exceedsTotalSize;
+
+  const formattedUploadSize = formatFileSize(totalUploadSize);
+  const uploadSizeLabel = `${format.number(formattedUploadSize.value, {
+    maximumFractionDigits: formattedUploadSize.maximumFractionDigits,
+  })} ${formattedUploadSize.unit}`;
+
+  const formattedMaxUploadSize = formatFileSize(MAX_POST_UPLOAD_BYTES);
+  const maxUploadSizeLabel = `${format.number(formattedMaxUploadSize.value, {
+    maximumFractionDigits: formattedMaxUploadSize.maximumFractionDigits,
+  })} ${formattedMaxUploadSize.unit}`;
+
+  const selectedFilesSizeLabel = t('selectedFilesSize', {
+    current: uploadSizeLabel,
+    max: maxUploadSizeLabel,
+  });
 
   // Allocate browser resources after commit, never during render or replayable model updaters.
   useEffect(() => {
@@ -217,10 +244,6 @@ export const FormPostAttachments = memo(function FormPostAttachments({
     });
   };
 
-  if (attachments.length === 0) {
-    return null;
-  }
-
   /** Read gallery contents and intrinsic dimensions from current media elements. */
   const onClickPreview: ComponentProps<'button'>['onClick'] = ({ currentTarget }) => {
     const attachmentList = currentTarget.closest('[data-attachment-list]');
@@ -244,19 +267,19 @@ export const FormPostAttachments = memo(function FormPostAttachments({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <Field className="gap-3" data-invalid={hasSizeError}>
       <DragDropProvider onDragEnd={onDragEnd}>
-        <div className="flex gap-4 flex-col group/form-post-attachments">
+        <div className="flex gap-4 flex-col">
           {attachments.map((attachment, index) => {
             const source = attachment instanceof File ? fileToPreviewSource.get(attachment) : attachment.src;
             // A new upload becomes visible once its URL has been allocated by the effect.
-            return source === undefined ? null : (
+            return isNil(source) ? null : (
               <SortableFormAttachment
                 key={attachmentKey(attachment)}
                 attachment={attachment}
                 src={source}
                 index={index}
-                count={attachments.length}
+                attachmentsLength={attachments.length}
                 onRemove={onRemove}
                 onSwap={onSwap}
                 onClickPreview={onClickPreview}
@@ -277,18 +300,37 @@ export const FormPostAttachments = memo(function FormPostAttachments({
           }}
         </DragOverlay>
       </DragDropProvider>
-      <Button
-        type="button"
-        className="self-end"
-        size="sm"
-        variant="ghost"
-        onClick={() => {
-          onChange([]);
-        }}
-      >
-        {t('clearAll')}
-        <X />
-      </Button>
-    </div>
+      <div className="flex items-center gap-2">
+        <Progress
+          value={totalUploadSize}
+          max={MAX_POST_UPLOAD_BYTES}
+          aria-valuetext={selectedFilesSizeLabel}
+          aria-invalid={hasSizeError}
+          className={cn('min-w-0 flex-1 gap-2', hasSizeError && '**:data-[slot=progress-indicator]:bg-destructive')}
+        >
+          <div className="flex w-full items-baseline justify-between gap-4">
+            <ProgressLabel className={hasSizeError ? 'text-destructive' : undefined}>
+              {t('selectedFiles')}
+            </ProgressLabel>
+            <FieldDescription className={cn('ms-auto text-end', hasSizeError && 'text-destructive')} aria-live="polite">
+              {selectedFilesSizeLabel}
+            </FieldDescription>
+          </div>
+        </Progress>
+        <Button
+          type="button"
+          aria-label={t('clearAll')}
+          className="shrink-0"
+          size="icon-sm"
+          variant="destructive"
+          onClick={() => {
+            onChange([]);
+          }}
+        >
+          <X />
+        </Button>
+      </div>
+      {hasSizeError && <FieldError>{t('combinedFileSizeCannotExceed', { max: maxUploadSizeLabel })}</FieldError>}
+    </Field>
   );
 });

@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    // Keep proxy and action limits above the 200 MiB file allowance for multipart overhead.
+    proxyClientMaxBodySize: '220mb',
+    serverActions: {
+      // TODO: Replace buffered Server Action uploads with streaming or direct-to-storage uploads.
+      bodySizeLimit: '220mb',
+    },
+  },
   rewrites() {
     if (process.env.NODE_ENV !== 'development') {
       return [];

@@ -1,12 +1,15 @@
 type: object
+description: The request body must not exceed 220 MiB. Combined uploaded file data must not exceed 200 MiB.
 properties:
   files:
     type: array
+    description: Combined uploaded file data must not exceed 200 MiB.
     items:
       type: string
       format: binary
   text:
     type: string
+    maxLength: 10000
 required:
   - text
   - files

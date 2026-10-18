@@ -38,7 +38,7 @@ export const FormAttachment = ({
   name: string;
   fileSize: string;
   onClickPreview?: ComponentProps<'button'>['onClick'];
-} & Pick<ComponentProps<typeof Attachment>, 'children' | 'ref' | 'className'>) => {
+} & Pick<ComponentProps<typeof Attachment>, 'children' | 'ref' | 'className' | 'state'>) => {
   switch (type) {
     case FILE_TYPES.AUDIO: {
       return <FormAttachmentAudio {...props} />;
