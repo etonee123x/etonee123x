@@ -7,7 +7,6 @@ import {
   BreadcrumbSeparator,
 } from '@/shared/ui/ds/breadcrumb';
 import { Fragment } from 'react/jsx-runtime';
-import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { QueryClient } from '@tanstack/react-query';
 import { type components } from '@/shared/api/openapi';
@@ -145,7 +144,6 @@ const pathDirectoryToNavigationItems = (
 
 export default async function Explorer({ params }: Readonly<PageProps<'/[locale]/explorer/[[...segments]]'>>) {
   const { segments = [] } = await params;
-  const t = await getTranslations('Explorer');
 
   const queryClient = new QueryClient();
   const folderData = await queryClient.query(getFolderDataQueryOptions('/' + segments.join('/'))).catch(() => {
@@ -166,7 +164,7 @@ export default async function Explorer({ params }: Readonly<PageProps<'/[locale]
     <section className="layout-container mb-6">
       <SendFolderDataToPlayer folderData={folderData} />
       <SendFolderDataToGallery folderData={folderData} lastNavigationItemHref={lastNavigationItem.href} />
-      <h1 className="h1 mb-1">{t('content')}</h1>
+      <h1 className="h1 mb-1">{lastNavigationItem.text}</h1>
 
       <Breadcrumb className="mb-4 z-explorer-navbar sticky top-header-height">
         <BreadcrumbList>
