@@ -13,4 +13,8 @@ const baseUrl = (() => {
 
 export const client = createPathBasedClient<paths>({
   baseUrl,
+  // Resolve fetch at call time so server requests use Next.js's patched fetch, including Request.next.
+  fetch: (request) => {
+    return fetch(request);
+  },
 });

@@ -36,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...buildEntries('', now),
     ...buildEntries('/blog', now),
     ...buildEntries('/explorer', now),
+    ...buildEntries('/contact-me', now),
     ...posts.rows.flatMap((post) => {
       return buildEntries(`/blog/${post.slug}`, new Date(post._meta.updatedAt));
     }),

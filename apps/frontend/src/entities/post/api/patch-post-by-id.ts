@@ -1,6 +1,7 @@
 import { client } from '@/shared/api/client';
 import type { components } from '@/shared/api/openapi';
 
+/** Expire all post variants only after Express authorizes and completes the update. */
 export const patchPostById = async (
   id: components['schemas']['PostResponse']['_meta']['id'],
   data: Omit<components['schemas']['PostUpdateRequest'], 'files'>,
@@ -21,7 +22,7 @@ export const patchPostById = async (
       const formData = new FormData();
 
       formData.append('text', body.text);
-      formData.append(`attachments`, JSON.stringify(body.attachments));
+      formData.append('attachmentsIds', JSON.stringify(body.attachmentsIds));
 
       files.forEach((file) => {
         formData.append('files', file);

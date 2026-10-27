@@ -9,6 +9,8 @@
     "questionIdeaOrRecommendation": "Вопрос, идея или рекомендация — я прочитаю каждое сообщение.",
     "yourMessage": "Твоё сообщение",
     "messageIsRequired": "Сообщение обязательно.",
+    "messageLength": "{count} / {max}",
+    "replyContactLength": "{count} / {max}",
     "sampleText": "Вставить текст",
     "whereCanIReply": "Куда ответить? (необязательно)",
     "yourEmailOrAnotherContact": "Твой Email или другой контакт",
@@ -52,7 +54,6 @@
     "postAttachmentImage": "Вложение поста, изображение"
   },
   "Explorer": {
-    "content": "Контент",
     "treeDots": "..."
   },
   "NotFound": {
@@ -114,9 +115,16 @@
   "FormPost": {
     "message": "Сообщение...",
     "attachments": "Вложения",
-    "clearAll": "Очистить все"
+    "clearAll": "Очистить все",
+    "charactersUsed": "{count} / {max}",
+    "messageMustBeNoLongerThan": "Сообщение не должно превышать {max} символов.",
+    "combinedFileSizeCannotExceed": "Общий размер файлов не должен превышать {max}.",
+    "selectedFiles": "Выбранные файлы",
+    "selectedFilesSize": "{current} / {max}"
   },
   "FormPostAttachments": {
+    "moveAttachmentUp": "Переместить вложение вверх",
+    "moveAttachmentDown": "Переместить вложение вниз",
     "fileSize": "{value} {unit}"
   },
   "FormPostCreate": {

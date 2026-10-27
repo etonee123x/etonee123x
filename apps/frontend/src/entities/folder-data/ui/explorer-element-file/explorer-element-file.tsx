@@ -49,9 +49,15 @@ const FileFooter = ({ element, href }: { element: components['schemas']['FolderD
           href={element.src}
           download={element.name}
           fileSize={element.size}
+          size="icon"
           className="pointer-events-auto relative z-1"
         />
-        <ShareButton className="pointer-events-auto relative z-1" variant="secondary" onClick={onClickShareButton} />
+        <ShareButton
+          className="pointer-events-auto relative z-1"
+          size="icon"
+          variant="secondary"
+          onClick={onClickShareButton}
+        />
       </CardFooter>
     </footer>
   );

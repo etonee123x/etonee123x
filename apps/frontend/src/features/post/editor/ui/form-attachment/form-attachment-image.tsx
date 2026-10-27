@@ -1,13 +1,11 @@
 import {
   Attachment,
-  AttachmentAction,
   AttachmentActions,
   AttachmentContent,
   AttachmentDescription,
   AttachmentMedia,
   AttachmentTitle,
 } from '@/shared/ui/ds/attachment';
-import { Grip, X } from 'lucide-react';
 import Image from 'next/image';
 import { type ComponentProps } from 'react';
 
@@ -15,35 +13,41 @@ export const FormAttachmentImage = ({
   src,
   name,
   fileSize,
-  onClickRemove,
-  handleRef,
+  onClickPreview,
+  children,
   ...props
 }: Pick<ComponentProps<typeof Image>, 'src'> & {
-  name: ComponentProps<typeof AttachmentTitle>['children'];
+  name: string;
   fileSize: string;
-  onClickRemove: ComponentProps<typeof AttachmentAction>['onClick'];
-  handleRef: ComponentProps<typeof AttachmentAction>['ref'];
-} & ComponentProps<typeof Attachment>) => {
+  onClickPreview?: ComponentProps<'button'>['onClick'];
+} & Omit<ComponentProps<typeof Attachment>, 'onClick'>) => {
   return (
     <Attachment {...props}>
       <AttachmentMedia>
-        <Image width={40} height={40} className="h-full w-full object-contain" src={src} alt="" />
+        <button
+          type="button"
+          className="flex size-full cursor-zoom-in items-center justify-center"
+          aria-label={name}
+          onClick={onClickPreview}
+        >
+          <Image
+            width={40}
+            height={40}
+            className="h-full w-full object-contain"
+            src={src}
+            alt=""
+            data-attachment-preview
+            data-attachment-name={name}
+          />
+        </button>
       </AttachmentMedia>
       <AttachmentContent>
         <AttachmentTitle>{name}</AttachmentTitle>
         <AttachmentDescription>{fileSize}</AttachmentDescription>
       </AttachmentContent>
       <AttachmentActions>
-        <AttachmentAction
-          className="cursor-grab group-not-has-[>:nth-child(2)]/form-post-attachments:hidden"
-          size="lg"
-          ref={handleRef}
-        >
-          <Grip />
-        </AttachmentAction>
-        <AttachmentAction className="ms-2" variant="destructive" onClick={onClickRemove}>
-          <X />
-        </AttachmentAction>
+        {/* Controls are composed once by FormAttachment, independently of the media type. */}
+        {children}
       </AttachmentActions>
     </Attachment>
   );

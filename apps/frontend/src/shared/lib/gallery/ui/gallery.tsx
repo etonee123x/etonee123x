@@ -32,7 +32,6 @@ const GalleryControlPrevious = () => {
   return (
     previousGalleryItem && (
       <Button
-        size="lg"
         variant="ghost"
         className={cn(GALLERY_CONTROL_CLASS, 'inset-s-[calc(50%-50dvw)]')}
         render={previousControlRender}
@@ -70,7 +69,6 @@ const GalleryControlNext = () => {
   return (
     nextGalleryItem && (
       <Button
-        size="lg"
         variant="ghost"
         autoFocus
         className={cn(GALLERY_CONTROL_CLASS, 'inset-e-[calc(50%-50dvw)]')}
