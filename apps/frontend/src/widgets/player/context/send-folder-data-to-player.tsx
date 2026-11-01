@@ -3,12 +3,13 @@
 import { useAudioPlayer } from '@/entities/audio-player';
 import { FILE_TYPES } from '@/entities/file';
 import { type components } from '@/shared/api/openapi';
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 
 export const SendFolderDataToPlayer = ({ folderData }: { folderData: components['schemas']['FolderDataResponse'] }) => {
   const { open, setPathDirectory } = useAudioPlayer();
 
-  useEffect(() => {
+  // Queue changes update open, but must not reopen the unchanged route track.
+  const openFolderTrack = useEffectEvent(() => {
     const fileAudio = folderData.file?.fileType === FILE_TYPES.AUDIO ? folderData.file : null;
     if (!fileAudio) {
       return;
@@ -21,7 +22,11 @@ export const SendFolderDataToPlayer = ({ folderData }: { folderData: components[
       }),
       folderData.pathDirectory,
     );
-  }, [folderData, open]);
+  });
+
+  useEffect(() => {
+    openFolderTrack();
+  }, [folderData]);
 
   useEffect(() => {
     setPathDirectory(folderData.pathDirectory);

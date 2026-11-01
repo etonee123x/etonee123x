@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/shared/ui/ds/card';
 import { Separator } from '@/shared/ui/ds/separator';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
-import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { type ComponentProps, type CSSProperties, type PropsWithChildren, type ReactNode } from 'react';
 import { ExplorerElementHeader } from '../../explorer-element-header';
 import { Video } from './video';
 import {
@@ -14,11 +14,11 @@ export const ExplorerElementFileVideo = ({
   element,
   href,
   style,
-  footer,
+  Footer,
 }: Pick<ComponentProps<typeof Link>, 'href'> & {
   element: components['schemas']['FolderDataItemVideo'];
   style?: CSSProperties;
-  footer: ReactNode;
+  Footer: (props: PropsWithChildren) => ReactNode;
 }) => {
   return (
     <article className="contents">
@@ -38,7 +38,7 @@ export const ExplorerElementFileVideo = ({
         <CardContent>
           <Video src={element.src} width={element.metadata.width} height={element.metadata.height} />
         </CardContent>
-        {footer}
+        <Footer />
       </Card>
     </article>
   );

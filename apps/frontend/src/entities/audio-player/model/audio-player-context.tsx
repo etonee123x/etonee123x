@@ -8,17 +8,19 @@ type Track = components['schemas']['FolderDataItemAudio'];
 
 export const AudioPlayerContext = createContext<{
   audio: RefObject<HTMLAudioElement | null>;
-  track: Track | null;
+  currentTrack: Track | null;
   playlistPathDirectory: string | null;
   open: (track: Track, playlist: Array<Track>, pathDirectory: string) => void;
+  addToQueue: (track: Track) => void;
+  removeFromQueue: (track: Track) => void;
+  getQueuePosition: (track: Track) => number | null;
   next: () => void;
   previous: () => void;
   close: () => void;
   isShuffleModeEnabled: boolean;
   setIsShuffleModeEnabled: (isShuffleModeEnabled: boolean) => void;
-  setCurrentPlayingNumber: (playingNumber: number) => void;
   setPathDirectory: (pathDirectory: string | null) => void;
-  hasHistoryItems: boolean;
+  canGoBack: boolean;
 } | null>(null);
 
 export const useAudioPlayer = () => {

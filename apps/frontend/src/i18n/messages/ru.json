@@ -139,6 +139,13 @@
     "year": "Год выхода",
     "bpm": "Темп"
   },
+  "QueueButton": {
+    "addToQueue": "Добавить в очередь",
+    "removeFromQueue": "Убрать из очереди",
+    "trackAddedToQueue": "Добавлено в очередь: {trackName}",
+    "trackRemovedFromQueue": "Убрано из очереди: {trackName}",
+    "queuePosition": "В очереди под номером {position}"
+  },
   "ThePlayer": {
     "copied": "Скопировано!",
     "copyLink": "Скопировать ссылку",

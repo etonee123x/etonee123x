@@ -30,8 +30,8 @@ const millisecondsToTimeFormats = (milliseconds: number) => {
 
 const PlayerSlider = ({ className }: Pick<ComponentProps<'div'>, 'className'>) => {
   const t = useTranslations('ThePlayer');
-  const { audio, track } = useAudioPlayer();
-  if (!track) {
+  const { audio, currentTrack } = useAudioPlayer();
+  if (!currentTrack) {
     throw new Error('No track available');
   }
 
@@ -42,7 +42,7 @@ const PlayerSlider = ({ className }: Pick<ComponentProps<'div'>, 'className'>) =
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
   const [seekPreview, setSeekPreview] = useState<number | null>(null);
-  const duration = track.metadata.duration;
+  const duration = currentTrack.metadata.duration;
 
   useEventListener(
     'timeupdate',
@@ -153,7 +153,7 @@ const PlayerControlsVolume = () => {
 const PlayerControls = () => {
   const t = useTranslations('ThePlayer');
 
-  const { audio, next, previous, isShuffleModeEnabled, setIsShuffleModeEnabled, hasHistoryItems } = useAudioPlayer();
+  const { audio, next, previous, isShuffleModeEnabled, setIsShuffleModeEnabled, canGoBack } = useAudioPlayer();
 
   const getIsPlaying = () => {
     if (!audio.current) {
@@ -194,7 +194,7 @@ const PlayerControls = () => {
 
   const buttons = [
     {
-      disabled: isShuffleModeEnabled && !hasHistoryItems,
+      disabled: isShuffleModeEnabled && !canGoBack,
       ariaLabel: t('previousTrack'),
       onClick: onClickPrevious,
       Icon: SkipBack,
@@ -244,12 +244,12 @@ const PlayerControls = () => {
 };
 
 const PlayerShareButton = () => {
-  const track = useAudioPlayer().track ?? throwError();
+  const currentTrack = useAudioPlayer().currentTrack ?? throwError();
 
   const onClickShareButton = () => {
     return share({
-      title: track.name,
-      url: new URL('/explorer' + track.path, globalThis.location.origin).toString(),
+      title: currentTrack.name,
+      url: new URL('/explorer' + currentTrack.path, globalThis.location.origin).toString(),
     });
   };
 
@@ -258,26 +258,26 @@ const PlayerShareButton = () => {
 
 const PlayerCoverButton = () => {
   const t = useTranslations('ThePlayer');
-  const { track } = useAudioPlayer();
+  const { currentTrack } = useAudioPlayer();
   const { open } = useGalleryContext();
 
   const onClick = useCallback(() => {
-    if (!track?.metadata.cover) {
+    if (!currentTrack?.metadata.cover) {
       return;
     }
 
     const cover = {
-      src: track.metadata.cover.src,
-      width: track.metadata.cover.width,
-      height: track.metadata.cover.height,
-      name: track.name,
+      src: currentTrack.metadata.cover.src,
+      width: currentTrack.metadata.cover.width,
+      height: currentTrack.metadata.cover.height,
+      name: currentTrack.name,
       type: 'image' as const,
     };
 
     open(cover, [cover], { shouldShowName: true });
-  }, [open, track]);
+  }, [open, currentTrack]);
 
-  if (isNil(track?.metadata.cover)) {
+  if (isNil(currentTrack?.metadata.cover)) {
     return null;
   }
 
@@ -289,10 +289,10 @@ const PlayerCoverButton = () => {
       onClick={onClick}
     >
       <Image
-        width={track.metadata.cover.width}
-        height={track.metadata.cover.height}
-        src={track.metadata.cover.src}
-        alt={t('cover', { trackName: track.name })}
+        width={currentTrack.metadata.cover.width}
+        height={currentTrack.metadata.cover.height}
+        src={currentTrack.metadata.cover.src}
+        alt={t('cover', { trackName: currentTrack.name })}
       />
     </Button>
   );
@@ -301,13 +301,13 @@ const PlayerCoverButton = () => {
 export const Player = () => {
   const t = useTranslations('ThePlayer');
 
-  const { track, close } = useAudioPlayer();
+  const { currentTrack, close } = useAudioPlayer();
 
   const onClickClose = useCallback(() => {
     close();
   }, [close]);
 
-  if (!track) {
+  if (!currentTrack) {
     return null;
   }
 
@@ -326,7 +326,7 @@ export const Player = () => {
       <header className="grid grid-cols-[1fr_auto_1fr] items-center mb-2">
         <PlayerCoverButton />
         <BaseAlwaysScrollable className="col-start-2 [--base-always-scrollable--content--margin:0_auto]">
-          <h2 className="text-lg">{track.name}</h2>
+          <h2 className="text-lg">{currentTrack.name}</h2>
         </BaseAlwaysScrollable>
         <PlayerShareButton />
       </header>

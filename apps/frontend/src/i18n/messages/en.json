@@ -138,6 +138,13 @@
     "year": "Release year",
     "bpm": "BPM"
   },
+  "QueueButton": {
+    "addToQueue": "Add to queue",
+    "removeFromQueue": "Remove from queue",
+    "trackAddedToQueue": "Added to queue: {trackName}",
+    "trackRemovedFromQueue": "Removed from queue: {trackName}",
+    "queuePosition": "Queue position {position}"
+  },
   "ThePlayer": {
     "copied": "Copied!",
     "copyLink": "Copy link",
