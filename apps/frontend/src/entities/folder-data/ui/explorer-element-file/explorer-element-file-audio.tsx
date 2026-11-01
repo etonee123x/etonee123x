@@ -1,12 +1,12 @@
 import { Separator } from '@/shared/ui/ds/separator';
 import { Link } from '@/i18n/navigation';
+import { AudioTrackProgress, QueueButton } from '@/entities/audio-player/@x/folder-data';
 import { type components } from '@/shared/api/openapi';
 import { millisecondsToHumanReadable } from '@/shared/utils/milliseconds-to-human-readable';
 import { Calendar, Clock, Disc3, Metronome, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { type ComponentProps, type CSSProperties, type PropsWithChildren, type ReactNode } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
-import { AudioTrackProgress } from '@/entities/audio-player/@x/folder-data';
 import { isNil } from '@/shared/utils/is-nil';
 import { Card, CardContent } from '@/shared/ui/ds/card';
 import Image from 'next/image';
@@ -20,11 +20,11 @@ export const ExplorerElementFileAudio = ({
   element,
   href,
   style,
-  footer,
+  Footer,
 }: Pick<ComponentProps<typeof Link>, 'href'> & {
   element: components['schemas']['FolderDataItemAudio'];
   style?: CSSProperties;
-  footer: ReactNode;
+  Footer: (props: PropsWithChildren) => ReactNode;
 }) => {
   const t = useTranslations('ExplorerElementAudio');
 
@@ -132,7 +132,9 @@ export const ExplorerElementFileAudio = ({
             </dl>
           </CardContent>
         </div>
-        {footer}
+        <Footer>
+          <QueueButton track={element} />
+        </Footer>
       </Card>
     </article>
   );

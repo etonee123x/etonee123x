@@ -41,7 +41,7 @@ const ActiveTrackProgress = ({ duration }: { duration: number }) => {
 };
 
 export const AudioTrackProgress = ({ trackSrc, duration }: { trackSrc: string; duration: number }) => {
-  const { track } = useAudioPlayer();
+  const { currentTrack } = useAudioPlayer();
 
-  return track?.src === trackSrc ? <ActiveTrackProgress duration={duration} /> : null;
+  return currentTrack?.src === trackSrc ? <ActiveTrackProgress duration={duration} /> : null;
 };

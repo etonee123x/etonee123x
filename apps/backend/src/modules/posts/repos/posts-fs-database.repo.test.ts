@@ -42,6 +42,9 @@ describe('PostsFsDatabaseRepo', () => {
     const repo = new PostsFsDatabaseRepo({ fsDatabaseFile });
     const createdPost = await repo.createPost({ slug: 'post-1', text: 'original', attachments: [] });
 
+    // A newly created post starts with identical creation and update timestamps.
+    expect(createdPost._meta.updatedAt).toBe(createdPost._meta.createdAt);
+
     await repo.updatePostById({ id: createdPost._meta.id, text: 'updated', attachments: [] });
 
     const persistedPost = await repo.findPostById({ id: createdPost._meta.id });

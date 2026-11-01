@@ -4,10 +4,10 @@ import { FILE_TYPES } from '@/entities/file/@x/folder-data';
 import { DownloadButton } from '@/features/file-download';
 import { share, ShareButton } from '@/features/share';
 import { type components } from '@/shared/api/openapi';
-import { CardFooter } from '@/shared/ui/ds/card';
 import { checkExhaustive } from '@/shared/utils/check-exhaustive';
+import { CardFooter } from '@/shared/ui/ds/card';
 import dynamic from 'next/dynamic';
-import { type CSSProperties } from 'react';
+import { type CSSProperties, type PropsWithChildren } from 'react';
 
 const ExplorerElementFileAudio = dynamic(() => {
   return import('./explorer-element-file-audio').then((module) => {
@@ -33,7 +33,15 @@ const ExplorerElementFileUnknown = dynamic(() => {
   });
 });
 
-const FileFooter = ({ element, href }: { element: components['schemas']['FolderDataItemFile']; href: string }) => {
+/** Wraps file-specific actions with the common download and share controls. */
+const FileFooter = ({
+  element,
+  href,
+  children,
+}: PropsWithChildren<{
+  element: components['schemas']['FolderDataItemFile'];
+  href: string;
+}>) => {
   // element.src is the direct URL to the file itself; href is the route inside the app that opens the file viewer.
   const onClickShareButton = () => {
     return share({
@@ -45,13 +53,20 @@ const FileFooter = ({ element, href }: { element: components['schemas']['FolderD
   return (
     <footer className="contents">
       <CardFooter className="justify-end gap-2">
+        {children}
         <DownloadButton
           href={element.src}
           download={element.name}
           fileSize={element.size}
+          size="icon"
           className="pointer-events-auto relative z-1"
         />
-        <ShareButton className="pointer-events-auto relative z-1" variant="secondary" onClick={onClickShareButton} />
+        <ShareButton
+          className="pointer-events-auto relative z-1"
+          size="icon"
+          variant="secondary"
+          onClick={onClickShareButton}
+        />
       </CardFooter>
     </footer>
   );
@@ -67,20 +82,27 @@ export const ExplorerElementFile = ({
   style?: CSSProperties;
 }) => {
   // href opens the file viewer; element.src points directly to the downloadable file.
-  const footer = <FileFooter element={element} href={href} />;
+  // Specialized file cards supply their own footer actions through this wrapper.
+  const Footer = ({ children }: PropsWithChildren) => {
+    return (
+      <FileFooter element={element} href={href}>
+        {children}
+      </FileFooter>
+    );
+  };
 
   switch (element.fileType) {
     case FILE_TYPES.AUDIO: {
-      return <ExplorerElementFileAudio element={element} href={href} style={style} footer={footer} />;
+      return <ExplorerElementFileAudio element={element} href={href} style={style} Footer={Footer} />;
     }
     case FILE_TYPES.IMAGE: {
-      return <ExplorerElementFileImage element={element} href={href} style={style} footer={footer} />;
+      return <ExplorerElementFileImage element={element} href={href} style={style} Footer={Footer} />;
     }
     case FILE_TYPES.VIDEO: {
-      return <ExplorerElementFileVideo element={element} href={href} style={style} footer={footer} />;
+      return <ExplorerElementFileVideo element={element} href={href} style={style} Footer={Footer} />;
     }
     case FILE_TYPES.UNKNOWN: {
-      return <ExplorerElementFileUnknown element={element} href={href} style={style} footer={footer} />;
+      return <ExplorerElementFileUnknown element={element} href={href} style={style} Footer={Footer} />;
     }
     default: {
       throw checkExhaustive(element);

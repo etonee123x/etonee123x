@@ -8,16 +8,51 @@ import type { FilesService } from '@/infrastructure/files/services/files.service
 import { AppError } from '@/shared/errors/app.error';
 import type { StoredFile } from '@/shared/domain/stored-file/stored-file';
 import type { PostSlugGenerator } from './post-slug-generator';
+import type { TagRevalidator } from '@/infrastructure/revalidation/tag-revalidator';
+import { logger } from '@/shared/logger';
 
 export class PostsService {
+  /**
+  Maximum accepted multipart request body, including fields and framing.
+  */
+  static readonly MAX_POST_BODY_SIZE_BYTES = 220 * 1024 * 1024;
+
+  /**
+  Maximum combined size of retained and uploaded post attachments.
+  */
+  static readonly MAX_POST_ATTACHMENTS_SIZE_BYTES = 200 * 1024 * 1024;
+
+  /**
+  Maximum number of characters allowed in post text.
+  */
+  static readonly MAX_POST_TEXT_LENGTH = 10_000;
+
   private readonly postsRepo: PostsRepo;
   private readonly filesService: FilesService;
   private readonly postSlugGenerator: PostSlugGenerator;
+  private readonly tagRevalidator: TagRevalidator;
 
-  constructor(parameters: { postsRepo: PostsRepo; filesService: FilesService; postSlugGenerator: PostSlugGenerator }) {
+  constructor(parameters: {
+    postsRepo: PostsRepo;
+    filesService: FilesService;
+    postSlugGenerator: PostSlugGenerator;
+    tagRevalidator: TagRevalidator;
+  }) {
     this.postsRepo = parameters.postsRepo;
     this.filesService = parameters.filesService;
     this.postSlugGenerator = parameters.postSlugGenerator;
+    this.tagRevalidator = parameters.tagRevalidator;
+  }
+
+  /**
+  Preserve committed post mutations if the separate Next.js cache request fails.
+  */
+  private async revalidatePosts(): Promise<void> {
+    try {
+      await this.tagRevalidator.revalidate('posts');
+    } catch (error) {
+      logger.warn(`Posts cache revalidation failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   private async getKeyByFile(file: Express.Multer.File) {
@@ -37,6 +72,44 @@ export class PostsService {
         return post.slug;
       }),
     });
+  }
+
+  /**
+  Resolve retained attachments from storage and reject client references to unrelated files.
+  */
+  private getRetainedAttachments(post: Post, attachmentIds: Array<string | null>): Array<StoredFile | null> {
+    return attachmentIds.map((attachmentId) => {
+      if (attachmentId === null) {
+        return null;
+      }
+
+      const storedAttachment = post.attachments.find((attachment) => {
+        return attachment.name === attachmentId;
+      });
+
+      if (!storedAttachment) {
+        throw new AppError(400, 'Attachment does not belong to this post');
+      }
+
+      return storedAttachment;
+    });
+  }
+
+  /**
+  Enforce the combined stored and new attachment size limit.
+  */
+  private validateAttachmentsSize(retainedAttachments: Array<StoredFile | null>, files: Array<Express.Multer.File>) {
+    const totalAttachmentSize =
+      retainedAttachments.reduce((total, attachment) => {
+        return total + (attachment?.size ?? 0);
+      }, 0) +
+      files.reduce((total, file) => {
+        return total + file.size;
+      }, 0);
+
+    if (totalAttachmentSize > PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES) {
+      throw new AppError(413, 'Payload Too Large');
+    }
   }
 
   /**
@@ -94,7 +167,10 @@ export class PostsService {
   }
 
   async createPost(parameters: { text: string; files: Array<globalThis.Express.Multer.File> }): Promise<Post> {
+    this.validateAttachmentsSize([], parameters.files);
+
     const uploadedAttachments: Array<StoredFile> = [];
+    let post: Post;
 
     try {
       for (const file of parameters.files) {
@@ -105,7 +181,7 @@ export class PostsService {
         uploadedAttachments.push(uploaded);
       }
 
-      return await this.postsRepo.createPost({
+      post = await this.postsRepo.createPost({
         slug: await this.getPostSlug(parameters.text),
         attachments: uploadedAttachments,
         text: parameters.text,
@@ -123,23 +199,30 @@ export class PostsService {
 
       throw error;
     }
+
+    await this.revalidatePosts();
+    return post;
   }
 
   async updatePostById(parameters: {
     id: string;
     files: Array<globalThis.Express.Multer.File>;
-    attachments: Array<StoredFile | null>;
+    attachmentsIds: Array<string | null>;
     text: string;
   }): Promise<Post> {
     const postOld = await this.postsRepo.findPostById({ id: parameters.id });
+    const retainedAttachments = this.getRetainedAttachments(postOld, parameters.attachmentsIds);
+
+    this.validateAttachmentsSize(retainedAttachments, parameters.files);
 
     const newlyUploaded: Array<StoredFile> = [];
     let fileIndex = 0;
+    let updatedPost: Post;
 
     try {
       const attachments: Array<StoredFile> = [];
 
-      for (const attachmentInput of parameters.attachments) {
+      for (const attachmentInput of retainedAttachments) {
         if (attachmentInput) {
           attachments.push(attachmentInput);
         } else if (fileIndex < parameters.files.length) {
@@ -163,7 +246,7 @@ export class PostsService {
         attachments.push(uploaded);
       }
 
-      const post = await this.postsRepo.updatePostById({
+      updatedPost = await this.postsRepo.updatePostById({
         id: parameters.id,
         text: parameters.text,
         attachments,
@@ -184,8 +267,6 @@ export class PostsService {
           }
         }),
       );
-
-      return post;
     } catch (error) {
       await Promise.all(
         newlyUploaded.map(async (attachment) => {
@@ -199,6 +280,9 @@ export class PostsService {
 
       throw error;
     }
+
+    await this.revalidatePosts();
+    return updatedPost;
   }
 
   async deletePostById(parameters: { id: string }): Promise<Post> {
@@ -214,6 +298,7 @@ export class PostsService {
       }),
     );
 
+    await this.revalidatePosts();
     return post;
   }
 }

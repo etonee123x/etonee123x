@@ -38,7 +38,7 @@ export const FormPostCreate = () => {
       <FormPost id="form-create-post" {...{ onValidityChange, onSubmit }} />
 
       {isFormValid && (
-        <Button size="lg" className="w-full mt-2" type="submit" form="form-create-post">
+        <Button className="w-full mt-4" type="submit" form="form-create-post">
           {t('send')}
         </Button>
       )}

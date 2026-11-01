@@ -45,21 +45,26 @@ const buildService = () => {
     upload: vi.fn().mockResolvedValue({ src: '/test', name: 'test' }),
     delete: vi.fn().mockResolvedValue(undefined),
   };
+  const tagRevalidator = { revalidate: vi.fn().mockResolvedValue(undefined) };
   const postSlugGenerator = new PostSlugGenerator();
 
   const service = new PostsService({
     postsRepo: postsRepo as never,
     filesService: filesService as never,
     postSlugGenerator,
+    tagRevalidator: tagRevalidator as never,
   });
 
-  return { service, postsRepo, filesService, postSlugGenerator };
+  return { service, postsRepo, filesService, postSlugGenerator, tagRevalidator };
 };
 
 const buildFile = (fileName: string, content: string) => {
+  const buffer = Buffer.from(content);
+
   return {
     originalname: fileName,
-    buffer: Buffer.from(content),
+    buffer,
+    size: buffer.byteLength,
   } as Express.Multer.File;
 };
 
@@ -182,7 +187,7 @@ describe('PostsService', () => {
   });
 
   it('createPost uses server-detected extensions in generated attachment keys', async () => {
-    const { service, postsRepo, filesService } = buildService();
+    const { service, postsRepo, filesService, tagRevalidator } = buildService();
 
     const files = [buildFile('untrusted.exe', 'A'), buildFile('also-untrusted.exe', 'B')];
     const [fileA, fileB] = files;
@@ -199,6 +204,7 @@ describe('PostsService', () => {
 
     await service.createPost({ text: 'post', files });
 
+    expect(tagRevalidator.revalidate).toHaveBeenCalledExactlyOnceWith('posts');
     expect(filesService.upload).toHaveBeenNthCalledWith(1, {
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,
       buffer: fileA.buffer,
@@ -215,13 +221,14 @@ describe('PostsService', () => {
   });
 
   it('passes post text and existing slugs to generator and saves generated slug', async () => {
-    const { service, postsRepo, postSlugGenerator } = buildService();
+    const { service, postsRepo, postSlugGenerator, tagRevalidator } = buildService();
     const generateSpy = vi.spyOn(postSlugGenerator, 'generate').mockReturnValue('generated-slug');
     const existingPosts = [{ slug: 'already-exists' }];
     postsRepo.findAllPosts.mockResolvedValue({ rows: existingPosts });
 
     await service.createPost({ text: 'new post text', files: [] });
 
+    expect(tagRevalidator.revalidate).toHaveBeenCalledExactlyOnceWith('posts');
     expect(generateSpy).toHaveBeenCalledWith({
       text: 'new post text',
       currentDate: expect.any(Date) as never,
@@ -234,28 +241,45 @@ describe('PostsService', () => {
     });
   });
 
-  it('updatePostById uploads null slots, keeps existing, deletes removed, updates repo', async () => {
-    const { service, postsRepo, filesService } = buildService();
+  it('rejects combined new file sizes above the limit before create uploads', async () => {
+    const { service, filesService } = buildService();
 
-    const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3' };
-    const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3' };
+    await expect(
+      service.createPost({
+        text: 'post',
+        files: [
+          { ...buildFile('large.bin', 'A'), size: PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES },
+          { ...buildFile('extra.bin', 'B'), size: 1 },
+        ],
+      }),
+    ).rejects.toMatchObject({ statusCode: 413 });
+
+    expect(filesService.upload).not.toHaveBeenCalled();
+  });
+
+  it('updatePostById uploads null slots, keeps existing, deletes removed, updates repo', async () => {
+    const { service, postsRepo, filesService, tagRevalidator } = buildService();
+
+    const oldKeep = { src: '/uploads/keep.mp3', name: 'keep.mp3', size: 1 };
+    const oldDrop = { src: '/uploads/drop.mp3', name: 'drop.mp3', size: 1 };
     const newAttachment = { src: '/uploads/new.mp3', name: 'new.mp3' };
     const updatedPost = { id: 'updated' };
     postsRepo.findPostById.mockResolvedValue({ attachments: [oldKeep, oldDrop] });
     filesService.upload.mockResolvedValue(newAttachment);
     postsRepo.updatePostById.mockResolvedValue(updatedPost);
 
-    const attachmentsInput = [oldKeep, null];
+    const attachmentsInput = [oldKeep.name, null];
 
     await expect(
       service.updatePostById({
         id: 'post-1',
         text: 'updated text',
-        attachments: attachmentsInput as never,
+        attachmentsIds: attachmentsInput,
         files: [buildFile('new.mp3', 'N')],
       }),
     ).resolves.toBe(updatedPost);
 
+    expect(tagRevalidator.revalidate).toHaveBeenCalledExactlyOnceWith('posts');
     expect(filesService.upload).toHaveBeenCalledWith({
       key: expect.stringMatching(/^[a-f0-9-]+\.mp3$/) as never,
       buffer: Buffer.from('N'),
@@ -266,6 +290,28 @@ describe('PostsService', () => {
       text: 'updated text',
       attachments: [oldKeep, newAttachment],
     });
+  });
+
+  it('rejects update when retained and newly uploaded files exceed the combined limit', async () => {
+    const { service, postsRepo, filesService } = buildService();
+    const retainedAttachment = {
+      src: '/uploads/keep.mp3',
+      name: 'keep.mp3',
+      size: PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES - 1,
+    };
+    postsRepo.findPostById.mockResolvedValue({ attachments: [retainedAttachment] });
+
+    await expect(
+      service.updatePostById({
+        id: 'post-1',
+        text: 'updated text',
+        attachmentsIds: [retainedAttachment.name],
+        files: [{ ...buildFile('new.mp3', 'N'), size: 2 }],
+      }),
+    ).rejects.toMatchObject({ statusCode: 413 });
+
+    expect(filesService.upload).not.toHaveBeenCalled();
+    expect(postsRepo.updatePostById).not.toHaveBeenCalled();
   });
 
   it('createPost cleans up uploaded files if repo creation fails', async () => {
@@ -294,7 +340,7 @@ describe('PostsService', () => {
       service.updatePostById({
         id: 'post-1',
         text: 'updated text',
-        attachments: [null],
+        attachmentsIds: [null],
         files: [buildFile('new.mp3', 'N')],
       }),
     ).rejects.toThrow('db update error');
@@ -303,7 +349,7 @@ describe('PostsService', () => {
   });
 
   it('deletePostById deletes all attached files and returns deleted post', async () => {
-    const { service, postsRepo, filesService } = buildService();
+    const { service, postsRepo, filesService, tagRevalidator } = buildService();
 
     const deletedPost = {
       _meta: { id: '1', createdAt: 1, updatedAt: 1 },
@@ -319,6 +365,7 @@ describe('PostsService', () => {
 
     await expect(service.deletePostById({ id: '1' })).resolves.toBe(deletedPost);
 
+    expect(tagRevalidator.revalidate).toHaveBeenCalledExactlyOnceWith('posts');
     expect(filesService.delete).toHaveBeenNthCalledWith(1, { key: 'a.mp3' });
     expect(filesService.delete).toHaveBeenNthCalledWith(2, { key: 'b.mp3' });
   });
@@ -348,7 +395,7 @@ describe('PostsService', () => {
       service.updatePostById({
         id: 'post-1',
         text: 'updated',
-        attachments: [null],
+        attachmentsIds: [null],
         files: [buildFile('new.mp3', 'N')],
       }),
     ).rejects.toThrow('upload failed');

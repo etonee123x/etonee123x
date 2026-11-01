@@ -2,7 +2,9 @@ import Express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import { parseFiles } from '@/modules/posts/middlewares/parse-files.middleware';
+import { parseFiles, validateNewPostFilesSize } from '@/modules/posts/middlewares/parse-files.middleware';
+import { errorHandler } from '@/middlewares/error-handler.middleware';
+import { PostsService } from '@/modules/posts/services/posts.service';
 
 const buildApp = () => {
   const app = Express();
@@ -57,15 +59,39 @@ describe('parseFiles', () => {
     expect(result.body).toEqual({ count: 0, firstName: null });
   });
 
-  it('surfaces error when file exceeds size limit', async () => {
+  it('accepts files below the new per-file size limit', async () => {
     const app = buildApp();
 
     await request(app)
       .post('/upload')
       .attach('files', Buffer.alloc(50 * 1024 * 1024 + 1), {
-        filename: 'too-big.bin',
+        filename: 'large.bin',
         contentType: 'application/octet-stream',
       })
-      .expect(500);
+      .expect(200);
+  });
+
+  it('rejects combined new files above the attachment size limit', async () => {
+    const app = Express();
+
+    app.post(
+      '/upload',
+      (...[request_, , next]) => {
+        request_.files = [
+          { size: PostsService.MAX_POST_ATTACHMENTS_SIZE_BYTES },
+          { size: 1 },
+        ] as Array<globalThis.Express.Multer.File>;
+        next();
+      },
+      validateNewPostFilesSize,
+      (...[, response]) => {
+        return response.sendStatus(200);
+      },
+    );
+    app.use(errorHandler);
+
+    const response = await request(app).post('/upload').expect(413);
+
+    expect(response.body).toMatchObject({ statusCode: 413 });
   });
 });

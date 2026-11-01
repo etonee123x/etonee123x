@@ -15,7 +15,9 @@ const buildApp = (postsService: unknown) => {
   app.use(cookieParser());
   app.use(Express.json());
 
-  const controller = new PostsController({ postsService: postsService as never });
+  const controller = new PostsController({
+    postsService: postsService as never,
+  });
   app.use(controller.router);
   app.use(errorHandler);
 
@@ -132,20 +134,20 @@ describe('PostsController', () => {
       deletePostById: vi.fn(),
     });
 
-    const attachments = [{ src: '/uploads/file.png', name: 'file.png' }];
+    const attachments = ['file.png'];
 
     await request(app)
       .patch('/posts/post-7')
       .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
       .field('text', 'updated')
-      .field('attachments', JSON.stringify(attachments))
+      .field('attachmentsIds', JSON.stringify(attachments))
       .attach('files', Buffer.from('content'), { filename: 'upload.bin', contentType: 'application/octet-stream' })
       .expect(200);
 
     expect(updatePostById).toHaveBeenCalledWith({
       id: 'post-7',
       text: 'updated',
-      attachments,
+      attachmentsIds: attachments,
       files: [
         expect.objectContaining({
           originalname: 'upload.bin',
@@ -215,6 +217,51 @@ describe('PostsController', () => {
     });
   });
 
+  it('accepts 10000 text characters and rejects 10001 on create and update', async () => {
+    const createPost = vi.fn(async () => {
+      return { ok: true };
+    });
+    const updatePostById = vi.fn(async () => {
+      return { ok: true };
+    });
+    const jwt = signJwt();
+    const app = buildApp({
+      getPosts: vi.fn(),
+      createPost,
+      updatePostById,
+      deletePostById: vi.fn(),
+    });
+    const textAtLimit = 'x'.repeat(10_000);
+    const textOverLimit = 'x'.repeat(10_001);
+
+    await request(app)
+      .post('/posts')
+      .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
+      .field('text', textAtLimit)
+      .expect(200);
+    await request(app)
+      .patch('/posts/post-1')
+      .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
+      .field('text', textAtLimit)
+      .field('attachmentsIds', '[]')
+      .expect(200);
+
+    await request(app)
+      .post('/posts')
+      .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
+      .field('text', textOverLimit)
+      .expect(400);
+    await request(app)
+      .patch('/posts/post-1')
+      .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
+      .field('text', textOverLimit)
+      .field('attachmentsIds', '[]')
+      .expect(400);
+
+    expect(createPost).toHaveBeenCalledTimes(1);
+    expect(updatePostById).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects invalid pageSize query parameter with 400', async () => {
     const app = buildApp({
       getPosts: vi.fn(),
@@ -240,7 +287,7 @@ describe('PostsController', () => {
       .patch('/posts/post-1')
       .set('Cookie', [`${KEY_COOKIE_JWT}=${jwt}`])
       .field('text', 'updated')
-      .field('attachments', '{broken-json')
+      .field('attachmentsIds', '{broken-json')
       .expect(400);
   });
 });

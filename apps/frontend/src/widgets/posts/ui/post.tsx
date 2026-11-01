@@ -138,7 +138,7 @@ export const Post = ({
                 </time>
               )}
             </Link>
-            <ShareButton onClick={onClickShareButton} variant="secondary" />
+            <ShareButton size="icon" onClick={onClickShareButton} variant="secondary" />
             {afterFooterButtons && (
               <>
                 <Separator orientation="vertical" className="h-6 my-auto" />

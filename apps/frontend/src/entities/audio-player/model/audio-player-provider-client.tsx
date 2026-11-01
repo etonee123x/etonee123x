@@ -2,9 +2,11 @@
 
 import { type ContextType, type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AudioPlayerContext } from './audio-player-context';
+import { usePlayerHistory } from './use-player-history';
+import { usePlayerQuery } from './use-player-query';
+import { usePlayerShuffle } from './use-player-shuffle';
 import { useIsTouchOnly } from '@/shared/hooks/use-is-touch-only';
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { getRandomExceptCurrentIndex } from '@/shared/utils/get-random-except-current-index';
 import { throwError } from '@/shared/utils/throw-error';
 import { useSinglePlayback } from '@/shared/hooks/use-single-playback';
 import { localStorageVolume, DEFAULT_VOLUME } from './local-storage-volume';
@@ -12,7 +14,7 @@ import { isClient } from '@/shared/utils/target';
 import { useEventListener } from '@reactuses/core';
 import { isNil } from '@/shared/utils/is-nil';
 
-type Track = NonNullable<NonNullable<ContextType<typeof AudioPlayerContext>>['track']>;
+type Track = NonNullable<NonNullable<ContextType<typeof AudioPlayerContext>>['currentTrack']>;
 
 export const AudioPlayerProviderClient = ({
   children,
@@ -30,15 +32,33 @@ export const AudioPlayerProviderClient = ({
 
   const isTouchOnly = useIsTouchOnly();
 
-  const [track, setTrack] = useState<Track | null>(initialTrack);
-
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(initialTrack);
   const [playlist, setPlaylist] = useState<Array<Track>>(initialPlaylist);
 
   const [playlistPathDirectory, setPlaylistPathDirectory] = useState<string | null>(initialPlaylistPathDirectory);
 
-  const [isShuffleModeEnabled, setIsShuffleModeEnabled] = useState(false);
+  const {
+    append: appendHistoryTrack,
+    canGoBack,
+    clear: clearHistory,
+    goBack,
+    goForward,
+  } = usePlayerHistory(initialTrack);
 
-  const [historyItems, setHistoryItems] = useState<Array<number>>([]);
+  const {
+    addToQueue,
+    clearQueue,
+    clearResumeTrack,
+    getQueuePosition,
+    handlePlaylistOpen,
+    removeFromQueue,
+    resumeTrack,
+    takeNextTrack,
+  } = usePlayerQuery({ currentTrack, playlist });
+  const openingPlayerTrack = useRef<Track | null>(null);
+  const { getShuffleIndex, isShuffleModeEnabled, setIsShuffleModeEnabled } = usePlayerShuffle({ playlist });
+
+  const isCurrentTrackRoute = Boolean(currentTrack && decodeURIComponent(pathname) === '/explorer' + currentTrack.path);
 
   const pathDirectory = useRef<string | null>(initialPlaylistPathDirectory);
 
@@ -77,118 +97,171 @@ export const AudioPlayerProviderClient = ({
   }, []);
 
   const open: NonNullable<ContextType<typeof AudioPlayerContext>>['open'] = useCallback(
-    (track, playlist, pathDirectory) => {
-      setTrack(track);
-      setPlaylist(playlist);
+    (openedTrack, playlist, pathDirectory) => {
+      if (openingPlayerTrack.current?.src === openedTrack.src) {
+        openingPlayerTrack.current = null;
+      } else {
+        if (currentTrack?.src !== openedTrack.src) {
+          appendHistoryTrack(openedTrack);
+        }
+
+        setPlaylist(playlist);
+        handlePlaylistOpen(openedTrack);
+      }
+
+      setCurrentTrack(openedTrack);
       setPlaylistPathDirectory(pathDirectory);
     },
-    [],
+    [appendHistoryTrack, handlePlaylistOpen, currentTrack],
   );
 
   const close = useCallback(() => {
-    setTrack(null);
+    clearQueue();
+    openingPlayerTrack.current = null;
+    setCurrentTrack(null);
+    clearHistory();
 
     if (playlistPathDirectory === pathDirectory.current) {
       router.push('/explorer' + (pathDirectory.current ?? ''), { scroll: false });
     }
-  }, [playlistPathDirectory, router]);
-
-  const currentPlayingNumber = playlist.findIndex((playlistItem) => {
-    return playlistItem.src === track?.src;
-  });
-
-  const setCurrentPlayingNumber: NonNullable<ContextType<typeof AudioPlayerContext>>['setCurrentPlayingNumber'] =
-    useCallback(
-      (playingNumber) => {
-        setTrack(playlist[playingNumber] ?? throwError());
-      },
-      [playlist],
-    );
-
-  const getNextPlayingNumber = useCallback(() => {
-    if (currentPlayingNumber === -1 || playlist.length === 0) {
-      return null;
-    }
-
-    return isShuffleModeEnabled
-      ? getRandomExceptCurrentIndex(playlist.length, currentPlayingNumber)
-      : (currentPlayingNumber + 1) % playlist.length;
-  }, [currentPlayingNumber, isShuffleModeEnabled, playlist.length]);
-
-  const doesRoutePathEqualToTrackPath = useCallback(() => {
-    return track && decodeURIComponent(pathname) === '/explorer' + track.path;
-  }, [pathname, track]);
+  }, [clearHistory, clearQueue, playlistPathDirectory, router]);
 
   const navigateToTrack = useCallback(
-    (_track: Track) => {
-      router.replace('/explorer' + _track.path, { scroll: false });
+    (nextTrack: Track) => {
+      openingPlayerTrack.current = nextTrack;
+      router.replace('/explorer' + nextTrack.path, { scroll: false });
     },
     [router],
   );
 
-  const next = useCallback(() => {
-    const nextPlayingNumber = getNextPlayingNumber();
-    if (nextPlayingNumber === null) {
-      return;
-    }
-
-    const nextTrack = playlist[nextPlayingNumber] ?? throwError();
-    setHistoryItems((historyItems) => {
-      return [...historyItems, currentPlayingNumber];
-    });
-
-    if (doesRoutePathEqualToTrackPath()) {
-      navigateToTrack(nextTrack);
-    } else {
-      setCurrentPlayingNumber(nextPlayingNumber);
-    }
-  }, [
-    currentPlayingNumber,
-    doesRoutePathEqualToTrackPath,
-    getNextPlayingNumber,
-    navigateToTrack,
-    playlist,
-    setCurrentPlayingNumber,
-  ]);
-
-  const previous = useCallback(() => {
-    if (currentPlayingNumber === -1 || playlist.length === 0) {
-      return;
-    }
-
-    if (historyItems.length === 0) {
-      const previousPlayingNumber = (currentPlayingNumber - 1 + playlist.length) % playlist.length;
-      const previousTrack = playlist[previousPlayingNumber] ?? throwError();
-
-      if (doesRoutePathEqualToTrackPath()) {
-        navigateToTrack(previousTrack);
-      } else {
-        setCurrentPlayingNumber(previousPlayingNumber);
+  /** Keeps the explorer route in sync when playback is currently controlled by that route. */
+  const changeTrack = useCallback(
+    (nextTrack: Track, wasTakenFromQueue = false) => {
+      if (!wasTakenFromQueue) {
+        removeFromQueue(nextTrack);
       }
 
+      if (isCurrentTrackRoute) {
+        navigateToTrack(nextTrack);
+      } else {
+        setCurrentTrack(nextTrack);
+      }
+    },
+    [isCurrentTrackRoute, navigateToTrack, removeFromQueue],
+  );
+
+  /** Selects a random index in shuffle mode, otherwise advances cyclically from the given track. */
+  const getNextTrackIndex = useCallback(
+    (resumeTrack?: Track) => {
+      if (playlist.length === 0) {
+        return null;
+      }
+
+      const trackToAdvanceFrom = resumeTrack ?? currentTrack;
+      const trackIndex = playlist.findIndex((playlistTrack) => {
+        return playlistTrack.src === trackToAdvanceFrom?.src;
+      });
+
+      if (isShuffleModeEnabled && playlist.length > 1) {
+        return getShuffleIndex(trackIndex);
+      }
+
+      if (trackIndex === -1) {
+        return resumeTrack === undefined && !isShuffleModeEnabled ? null : 0;
+      }
+
+      return (trackIndex + 1) % playlist.length;
+    },
+    [getShuffleIndex, isShuffleModeEnabled, playlist, currentTrack],
+  );
+
+  /** Manual next follows history forward; playback end advances through queue and playlist instead. */
+  const advanceToNextTrack = useCallback(
+    (shouldGoForwardInHistory: boolean) => {
+      const queuedTrack = takeNextTrack();
+
+      if (queuedTrack) {
+        appendHistoryTrack(queuedTrack);
+        changeTrack(queuedTrack, true);
+        return;
+      }
+
+      const nextHistoryTrack = shouldGoForwardInHistory ? goForward() : null;
+
+      if (nextHistoryTrack) {
+        changeTrack(nextHistoryTrack);
+        return;
+      }
+
+      if (resumeTrack) {
+        clearResumeTrack();
+
+        if (playlist.length === 0) {
+          setCurrentTrack(null);
+          return;
+        }
+
+        const nextPlayingIndex = getNextTrackIndex(resumeTrack);
+        const nextTrack = playlist[nextPlayingIndex ?? 0] ?? throwError();
+        appendHistoryTrack(nextTrack);
+        changeTrack(nextTrack);
+        return;
+      }
+
+      const nextPlayingIndex = getNextTrackIndex();
+      if (nextPlayingIndex === null) {
+        return;
+      }
+
+      const nextTrack = playlist[nextPlayingIndex] ?? throwError();
+      appendHistoryTrack(nextTrack);
+      changeTrack(nextTrack);
+    },
+    [
+      appendHistoryTrack,
+      changeTrack,
+      clearResumeTrack,
+      getNextTrackIndex,
+      goForward,
+      playlist,
+      resumeTrack,
+      takeNextTrack,
+    ],
+  );
+
+  const next = useCallback(() => {
+    advanceToNextTrack(true);
+  }, [advanceToNextTrack]);
+
+  const advanceAfterTrackEnded = useCallback(() => {
+    advanceToNextTrack(false);
+  }, [advanceToNextTrack]);
+
+  const currentPlayingIndex = (() => {
+    const index = playlist.findIndex((playlistTrack) => {
+      return playlistTrack.src === currentTrack?.src;
+    });
+
+    return index === -1 ? null : index;
+  })();
+
+  const previous = useCallback(() => {
+    const previousHistoryTrack = goBack();
+
+    if (previousHistoryTrack) {
+      changeTrack(previousHistoryTrack);
+
       return;
     }
 
-    const previousPlayingNumber = historyItems.at(-1);
-    const previousTrack = playlist[previousPlayingNumber ?? 0] ?? throwError();
-
-    setHistoryItems((historyItems) => {
-      return historyItems.slice(0, -1);
-    });
-
-    if (doesRoutePathEqualToTrackPath()) {
-      navigateToTrack(previousTrack);
-    } else {
-      setCurrentPlayingNumber(previousPlayingNumber ?? 0);
+    if (currentPlayingIndex === null || playlist.length === 0) {
+      return;
     }
-  }, [
-    currentPlayingNumber,
-    historyItems,
-    doesRoutePathEqualToTrackPath,
-    navigateToTrack,
-    playlist,
-    setCurrentPlayingNumber,
-  ]);
+
+    const previousPlayingIndex = (currentPlayingIndex - 1 + playlist.length) % playlist.length;
+    const previousTrack = playlist[previousPlayingIndex] ?? throwError();
+    changeTrack(previousTrack);
+  }, [changeTrack, currentPlayingIndex, goBack, playlist]);
 
   const nextRef = useRef(next);
   useEffect(() => {
@@ -247,28 +320,28 @@ export const AudioPlayerProviderClient = ({
   useEventListener(
     'ended',
     () => {
-      next();
+      advanceAfterTrackEnded();
     },
     audio,
   );
 
   useEffect(() => {
-    if (!track) {
+    if (!currentTrack) {
       unloadMedia();
       return;
     }
 
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.name,
-        artist: track.metadata.artists.join(', '),
-        album: track.metadata.album ?? undefined,
-        artwork: isNil(track.metadata.cover)
+        title: currentTrack.name,
+        artist: currentTrack.metadata.artists.join(', '),
+        album: currentTrack.metadata.album ?? undefined,
+        artwork: isNil(currentTrack.metadata.cover)
           ? undefined
           : [
               {
-                src: track.metadata.cover.src,
-                sizes: [track.metadata.cover.width, track.metadata.cover.height].join('x'),
+                src: currentTrack.metadata.cover.src,
+                sizes: [currentTrack.metadata.cover.width, currentTrack.metadata.cover.height].join('x'),
               },
             ],
       });
@@ -299,8 +372,8 @@ export const AudioPlayerProviderClient = ({
       return;
     }
 
-    audio.current.src = track.src;
-  }, [track, unloadMedia]);
+    audio.current.src = currentTrack.src;
+  }, [currentTrack, unloadMedia]);
 
   useEffect(() => {
     if (!isTouchOnly) {
@@ -324,29 +397,34 @@ export const AudioPlayerProviderClient = ({
   const playerValue = useMemo<NonNullable<ContextType<typeof AudioPlayerContext>>>(() => {
     return {
       audio,
-      track,
+      currentTrack,
       playlistPathDirectory,
       open,
+      addToQueue,
+      removeFromQueue,
+      getQueuePosition,
       next,
       previous,
       close,
       isShuffleModeEnabled,
       setIsShuffleModeEnabled,
-      setCurrentPlayingNumber,
       setPathDirectory,
-      hasHistoryItems: historyItems.length > 0,
+      canGoBack,
     };
   }, [
     close,
-    historyItems.length,
+    canGoBack,
     isShuffleModeEnabled,
     next,
     open,
+    addToQueue,
+    removeFromQueue,
+    getQueuePosition,
     previous,
-    setCurrentPlayingNumber,
+    setIsShuffleModeEnabled,
     setPathDirectory,
     playlistPathDirectory,
-    track,
+    currentTrack,
   ]);
 
   return <AudioPlayerContext value={playerValue}>{children}</AudioPlayerContext>;

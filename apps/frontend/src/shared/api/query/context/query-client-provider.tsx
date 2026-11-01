@@ -3,6 +3,7 @@
 
 // Since QueryClientProvider relies on useContext under the hood, we have to put 'use client' on top
 import { environmentManager, QueryClient, QueryClientProvider as _QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { PropsWithChildren } from 'react';
 
 const makeQueryClient = () => {
@@ -42,5 +43,11 @@ export const QueryClientProvider = ({ children }: Readonly<PropsWithChildren>) =
   //       render if it suspends and there is no boundary
   const queryClient = getQueryClient();
 
-  return <_QueryClientProvider client={queryClient}>{children}</_QueryClientProvider>;
+  return (
+    <_QueryClientProvider client={queryClient}>
+      {children}
+      {/* React Query Devtools excludes itself from production bundles. */}
+      <ReactQueryDevtools />
+    </_QueryClientProvider>
+  );
 };

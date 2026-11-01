@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/shared/ui/ds/card';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
-import { type ComponentProps, type CSSProperties, type ReactNode } from 'react';
+import { type ComponentProps, type CSSProperties, type PropsWithChildren, type ReactNode } from 'react';
 import { Separator } from '@/shared/ui/ds/separator';
 import { ExplorerElementHeader } from '../explorer-element-header';
 import {
@@ -14,11 +14,11 @@ export const ExplorerElementFileImage = ({
   element,
   href,
   style,
-  footer,
+  Footer,
 }: Pick<ComponentProps<typeof Link>, 'href'> & {
   element: components['schemas']['FolderDataItemImage'];
   style?: CSSProperties;
-  footer: ReactNode;
+  Footer: (props: PropsWithChildren) => ReactNode;
 }) => {
   return (
     <article className="contents">
@@ -38,7 +38,7 @@ export const ExplorerElementFileImage = ({
         <CardContent className="mx-auto max-w-full">
           <Image src={element.src} alt={element.name} width={element.metadata.width} height={element.metadata.height} />
         </CardContent>
-        {footer}
+        <Footer />
       </Card>
     </article>
   );

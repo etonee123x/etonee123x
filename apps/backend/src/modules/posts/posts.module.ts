@@ -15,6 +15,7 @@ import { FsDatabaseFile } from '@/infrastructure/fs-database-file';
 import type { Post } from './entities/post.entity';
 import { appConfig } from '@/config/app-config';
 import { PostSlugGenerator } from './services/post-slug-generator';
+import { TagRevalidator } from '@/infrastructure/revalidation/tag-revalidator';
 
 export class PostsModule extends Module {
   constructor() {
@@ -57,10 +58,16 @@ export class PostsModule extends Module {
 
     const postSlugGenerator = new PostSlugGenerator();
 
+    const tagRevalidator = new TagRevalidator({
+      nextServerUrl: appConfig.nextServerUrl,
+      secret: appConfig.revalidateSecret,
+    });
+
     const postsService = new PostsService({
       postsRepo,
       filesService,
       postSlugGenerator,
+      tagRevalidator,
     });
 
     const postsController = new PostsController({ postsService });

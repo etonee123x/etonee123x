@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/shared/ui/ds/button';
+import { Field, FieldDescription, FieldError } from '@/shared/ui/ds/field';
 import { Textarea } from '@/shared/ui/ds/textarea';
 import { type components } from '@/shared/api/openapi';
-import { FilePlus2, X } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
+import { FilePlus2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   type ComponentProps,
   type ComponentRef,
@@ -15,15 +16,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { extensionToFileType, FILE_TYPES } from '@/entities/file';
-import { DragDropProvider } from '@dnd-kit/react';
-import { isSortable, useSortable } from '@dnd-kit/react/sortable';
-import { FormAttachment } from './form-attachment';
+import { FormPostAttachments } from './form-post-attachments';
 import { throwError } from '@/shared/utils/throw-error';
-import { formatFileSize } from '@/shared/utils/format-file-size';
+import { MAX_POST_TEXT_LENGTH, MAX_POST_UPLOAD_BYTES } from '../model/post-upload-limits';
 
 type Post = Omit<components['schemas']['PostUpdateRequest'], 'files'>;
-type Attachment = NonNullable<Post['attachments'][number]>;
+type Attachment = components['schemas']['StoredFile'];
 type FileOrAttachment = File | Attachment;
 
 const onKeyDownTextarea: ComponentProps<typeof Textarea>['onKeyDown'] = (event) => {
@@ -60,67 +58,6 @@ const fileWithUniqueName = (file: File, usedNames: Set<string>) => {
   return name === file.name ? file : new File([file], name, { type: file.type, lastModified: file.lastModified });
 };
 
-const fileOrAttachmentToType = (fileOrAttachment: FileOrAttachment) => {
-  if (!(fileOrAttachment instanceof File)) {
-    return fileOrAttachment.fileType;
-  }
-
-  const extension = /^[^/]+\/(?<extension>.+)$/.exec(fileOrAttachment.type)?.groups?.extension;
-
-  return extension ? (extensionToFileType(`.${extension}`) ?? FILE_TYPES.UNKNOWN) : FILE_TYPES.UNKNOWN;
-};
-
-const SortableFormAttachment = ({
-  id,
-  index,
-  fileOrAttachment,
-  onClickRemoveByIndex,
-}: {
-  id: string;
-  index: number;
-  fileOrAttachment: FileOrAttachment;
-  onClickRemoveByIndex: (index: number) => void;
-}) => {
-  const { handleRef, ref } = useSortable({ id, index });
-  const [fileObjectUrl] = useState(() => {
-    return fileOrAttachment instanceof File ? URL.createObjectURL(fileOrAttachment) : undefined;
-  });
-
-  useEffect(() => {
-    return () => {
-      if (fileObjectUrl) {
-        URL.revokeObjectURL(fileObjectUrl);
-      }
-    };
-  }, [fileObjectUrl]);
-
-  const source = fileOrAttachment instanceof File ? fileObjectUrl : fileOrAttachment.src;
-  const format = useFormatter();
-  const t = useTranslations('FormPostAttachments');
-
-  if (!source) {
-    return null;
-  }
-
-  const { value, unit, maximumFractionDigits } = formatFileSize(fileOrAttachment.size);
-  const fileSize = t('fileSize', { value: format.number(value, { maximumFractionDigits }), unit });
-
-  return (
-    <FormAttachment
-      ref={ref}
-      handleRef={handleRef}
-      src={source}
-      type={fileOrAttachmentToType(fileOrAttachment)}
-      name={fileOrAttachment.name}
-      fileSize={fileSize}
-      onClickRemove={() => {
-        onClickRemoveByIndex(index);
-      }}
-      className="w-full"
-    />
-  );
-};
-
 export interface FormPostRef {
   focusTextarea: () => void;
 }
@@ -151,7 +88,17 @@ export const FormPost = ({
     defaultValues.attachments,
   );
 
-  const isValid = modelText.length > 0 || modelFilesAndAttachments.length > 0;
+  const totalUploadSize = modelFilesAndAttachments.reduce((total, attachment) => {
+    return total + attachment.size;
+  }, 0);
+
+  const isTextInvalid = modelText.length > MAX_POST_TEXT_LENGTH;
+
+  const isValid =
+    !isTextInvalid &&
+    totalUploadSize <= MAX_POST_UPLOAD_BYTES &&
+    (modelText.length > 0 || modelFilesAndAttachments.length > 0);
+
   const isChanged =
     modelText !== defaultValues.text ||
     modelFilesAndAttachments.length !== defaultValues.attachments.length ||
@@ -193,6 +140,22 @@ export const FormPost = ({
     inputRef.current?.click();
   };
 
+  /** Normalize upload names before adding files to the controlled attachment model. */
+  const addFiles = (files: Array<File>) => {
+    const usedNames = new Set(
+      modelFilesAndAttachments.map((attachment) => {
+        return attachment.name;
+      }),
+    );
+    const addedFiles = files.map((file) => {
+      return fileWithUniqueName(file, usedNames);
+    });
+
+    setModelFilesAndAttachments((attachments) => {
+      return [...attachments, ...addedFiles];
+    });
+  };
+
   const onChangeInputFiles: ComponentProps<'input'>['onChange'] = (event) => {
     const files = [...(event.currentTarget.files ?? [])];
 
@@ -200,20 +163,7 @@ export const FormPost = ({
       return;
     }
 
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      const usedNames = new Set(
-        modelFilesAndAttachments.map((fileOrAttachment) => {
-          return fileOrAttachment.name;
-        }),
-      );
-
-      return [
-        ...modelFilesAndAttachments,
-        ...files.map((file) => {
-          return fileWithUniqueName(file, usedNames);
-        }),
-      ];
-    });
+    addFiles(files);
 
     event.currentTarget.value = '';
   };
@@ -232,20 +182,7 @@ export const FormPost = ({
     }
 
     event.preventDefault();
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      const usedNames = new Set(
-        modelFilesAndAttachments.map((fileOrAttachment) => {
-          return fileOrAttachment.name;
-        }),
-      );
-
-      return [
-        ...modelFilesAndAttachments,
-        ...files.map((file) => {
-          return fileWithUniqueName(file, usedNames);
-        }),
-      ];
-    });
+    addFiles(files);
   };
 
   const _onSubmit: ComponentProps<'form'>['onSubmit'] = async (event) => {
@@ -265,8 +202,8 @@ export const FormPost = ({
         event.nativeEvent,
         {
           text: modelText,
-          attachments: modelFilesAndAttachments.map((fileOrAttachment) => {
-            return fileOrAttachment instanceof File ? null : fileOrAttachment;
+          attachmentsIds: modelFilesAndAttachments.map((fileOrAttachment) => {
+            return fileOrAttachment instanceof File ? null : fileOrAttachment.name;
           }),
         },
         modelFilesAndAttachments.filter((fileOrAttachment): fileOrAttachment is File => {
@@ -282,44 +219,30 @@ export const FormPost = ({
     focusTextareaAtEnd();
   };
 
-  const onClickDeleteFiles = () => {
-    setModelFilesAndAttachments([]);
-  };
-
-  const onClickRemoveByIndex = (index: number) => {
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      return modelFilesAndAttachments.toSpliced(index, 1);
-    });
-  };
-
-  const onDragEnd: ComponentProps<typeof DragDropProvider>['onDragEnd'] = (event) => {
-    const { source } = event.operation;
-
-    if (event.canceled || !isSortable(source) || source.initialIndex === source.index) {
-      return;
-    }
-
-    setModelFilesAndAttachments((modelFilesAndAttachments) => {
-      return modelFilesAndAttachments
-        .toSpliced(source.initialIndex, 1)
-        .toSpliced(source.index, 0, modelFilesAndAttachments[source.initialIndex] ?? throwError());
-    });
-  };
-
   return (
     <form {...props} className="flex flex-col gap-4" onSubmit={_onSubmit}>
       <div className="flex gap-2">
-        <Textarea
-          ref={textareaRef}
-          aria-label={t('message')}
-          placeholder={t('message')}
-          value={modelText}
-          onChange={(event) => {
-            setModelText(event.target.value);
-          }}
-          onKeyDown={onKeyDownTextarea}
-          onPaste={onPasteTextarea}
-        />
+        <Field data-invalid={isTextInvalid}>
+          <Textarea
+            ref={textareaRef}
+            aria-label={t('message')}
+            aria-invalid={isTextInvalid}
+            placeholder={t('message')}
+            maxLength={MAX_POST_TEXT_LENGTH}
+            value={modelText}
+            onChange={(event) => {
+              setModelText(event.target.value);
+            }}
+            onKeyDown={onKeyDownTextarea}
+            onPaste={onPasteTextarea}
+          />
+          <div className="flex items-baseline justify-between gap-4">
+            {isTextInvalid && <FieldError>{t('messageMustBeNoLongerThan', { max: MAX_POST_TEXT_LENGTH })}</FieldError>}
+            <FieldDescription className="ms-auto" aria-live="polite">
+              {t('charactersUsed', { count: modelText.length, max: MAX_POST_TEXT_LENGTH })}
+            </FieldDescription>
+          </div>
+        </Field>
         <div className="sticky top-[calc(var(--spacing-header-height)+var(--spacing)*2)] flex flex-col gap-2 h-min">
           <Button className="h-auto p-2" onClick={onClickButtonAddAttachment}>
             <FilePlus2 className="size-8" />
@@ -328,27 +251,7 @@ export const FormPost = ({
         </div>
       </div>
       {modelFilesAndAttachments.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <DragDropProvider onDragEnd={onDragEnd}>
-            <div className="flex gap-4 flex-col group/form-post-attachments">
-              {modelFilesAndAttachments.map((fileOrAttachment, index) => {
-                return (
-                  <SortableFormAttachment
-                    id={fileOrAttachmentToKey(fileOrAttachment)}
-                    index={index}
-                    key={fileOrAttachmentToKey(fileOrAttachment)}
-                    fileOrAttachment={fileOrAttachment}
-                    onClickRemoveByIndex={onClickRemoveByIndex}
-                  />
-                );
-              })}
-            </div>
-          </DragDropProvider>
-          <Button className="self-end" size="sm" variant="ghost" onClick={onClickDeleteFiles}>
-            {t('clearAll')}
-            <X />
-          </Button>
-        </div>
+        <FormPostAttachments attachments={modelFilesAndAttachments} onChange={setModelFilesAndAttachments} />
       )}
     </form>
   );

@@ -213,16 +213,24 @@ export interface components {
             };
             rows: components["schemas"]["PostResponse"][];
         };
+        /** @description The request body must not exceed 220 MiB. Combined uploaded file data must not exceed 200 MiB. */
         PostCreateRequest: {
+            /** @description Combined uploaded file data must not exceed 200 MiB. */
             files: string[];
             text: string;
+        };
+        Error413: {
+            message: string;
         };
         Error404: {
             message: string;
         };
+        /** @description The request body must not exceed 220 MiB. Combined uploaded file data must not exceed 200 MiB. */
         PostUpdateRequest: {
             text: string;
-            attachments: (components["schemas"]["StoredFile"] | null)[];
+            /** @description Existing attachment name IDs to retain in order; null slots are replaced by uploaded files. */
+            attachmentsIds: (string | null)[];
+            /** @description Combined uploaded file data must not exceed 200 MiB. */
             files: string[];
         };
         FolderDataItemBase: {
@@ -479,6 +487,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error401"];
                 };
             };
+            /** @description Payload Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error413"];
+                };
+            };
         };
     };
     deletePostById: {
@@ -570,6 +587,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Error404"];
+                };
+            };
+            /** @description Payload Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error413"];
                 };
             };
         };

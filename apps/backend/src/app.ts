@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 
 import { errorHandler } from '@/middlewares/error-handler.middleware';
+import { requestLogger } from '@/middlewares/request-logger.middleware';
 import { send404 } from '@/middlewares/send-404.middleware';
 import { appConfig } from '@/config/app-config';
 
@@ -30,6 +31,7 @@ export const createApp = () => {
   }
 
   const app = Express() //
+    .use(requestLogger)
     .use(helmet())
     .use(
       cors({

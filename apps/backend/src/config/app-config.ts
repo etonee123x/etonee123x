@@ -48,6 +48,14 @@ class AppConfig {
   */
   readonly oneTimeTokenSecret: string;
   /**
+  Base URL of the Next.js server for internal requests.
+  */
+  readonly nextServerUrl: string;
+  /**
+  Shared secret for authenticating cache revalidation requests.
+  */
+  readonly revalidateSecret: string;
+  /**
   Telegram bot token used for contact message delivery.
   */
   readonly telegramBotToken: string;
@@ -119,6 +127,8 @@ class AppConfig {
     this.port = AppConfig.getPortFromEnvironment();
     this.secretKey = AppConfig.getRequiredEnvironmentVariable('SECRET_KEY');
     this.oneTimeTokenSecret = AppConfig.getRequiredEnvironmentVariable('ONE_TIME_TOKEN_SECRET');
+    this.nextServerUrl = AppConfig.getRequiredEnvironmentVariable('NEXT_SERVER_URL');
+    this.revalidateSecret = AppConfig.getRequiredEnvironmentVariable('REVALIDATE_SECRET');
     this.telegramBotToken = AppConfig.getRequiredEnvironmentVariable('TELEGRAM_BOT_TOKEN');
     this.telegramChatId = AppConfig.getRequiredEnvironmentVariable('TELEGRAM_CHAT_ID');
     this.oneTimeTokenTtlMs = AppConfig.getEnvironmentVariablePositiveNumber('ONE_TIME_TOKEN_TTL_MS');

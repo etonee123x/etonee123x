@@ -18,6 +18,7 @@ vi.mock('@/shared/logger', () => {
 
 import { AppError } from '@/shared/errors/app.error';
 import { errorHandler } from '@/middlewares/error-handler.middleware';
+import multer from 'multer';
 
 describe('errorHandler', () => {
   it('returns app error status and body for AppError', async () => {
@@ -61,5 +62,19 @@ describe('errorHandler', () => {
     const response = await request(app).get('/posts').expect(500);
 
     expect(response.body).toEqual({ message: 'Something went wrong :(' });
+  });
+
+  it('returns 413 for Multer file size errors', async () => {
+    const app = Express();
+
+    app.get('/upload', () => {
+      throw new multer.MulterError('LIMIT_FILE_SIZE');
+    });
+
+    app.use(errorHandler);
+
+    const response = await request(app).get('/upload').expect(413);
+
+    expect(response.body).toMatchObject({ statusCode: 413 });
   });
 });

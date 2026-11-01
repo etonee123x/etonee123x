@@ -1,0 +1,2 @@
+export const MAX_CONTACT_MESSAGE_LENGTH = 2000;
+export const MAX_REPLY_CONTACT_LENGTH = 320;

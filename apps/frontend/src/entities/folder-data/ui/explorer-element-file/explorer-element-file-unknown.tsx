@@ -3,7 +3,7 @@
 import { Card } from '@/shared/ui/ds/card';
 import { Link } from '@/i18n/navigation';
 import { type components } from '@/shared/api/openapi';
-import { type CSSProperties, type ReactNode } from 'react';
+import { type CSSProperties, type PropsWithChildren, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { ExplorerElementHeader } from '../explorer-element-header';
@@ -30,12 +30,12 @@ export const ExplorerElementFileUnknown = ({
   element,
   href,
   style,
-  footer,
+  Footer,
 }: {
   element: components['schemas']['FolderDataItemUnknown'];
   href: string;
   style?: CSSProperties;
-  footer: ReactNode;
+  Footer: (props: PropsWithChildren) => ReactNode;
 }) => {
   const pathname = usePathname();
   const previousPathnameRef = useRef<string | null>(null);
@@ -69,7 +69,7 @@ export const ExplorerElementFileUnknown = ({
         <header className="contents">
           <ExplorerElementHeader name={element.name} createdAt={element._meta.createdAt} />
         </header>
-        {footer}
+        <Footer />
       </Card>
     </article>
   );

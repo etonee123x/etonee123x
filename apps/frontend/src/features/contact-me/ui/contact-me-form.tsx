@@ -17,6 +17,7 @@ import { Input } from '@/shared/ui/ds/input';
 import { Textarea } from '@/shared/ui/ds/textarea';
 import { toast } from '@/shared/ui/ds/toast';
 import { useMutationSendContactMessage } from '../mutations/use-mutation-send-contact-message';
+import { MAX_CONTACT_MESSAGE_LENGTH, MAX_REPLY_CONTACT_LENGTH } from '../model/contact-me-limits';
 
 /**
  * Sends a contact message and presents the submission state accessibly.
@@ -116,7 +117,7 @@ export const ContactMeForm = () => {
               id="contact-message"
               className="min-h-48 resize-y leading-6"
               autoFocus
-              maxLength={2000}
+              maxLength={MAX_CONTACT_MESSAGE_LENGTH}
               name="text"
               placeholder={t('sampleText')}
               aria-invalid={isTextInvalid}
@@ -132,7 +133,9 @@ export const ContactMeForm = () => {
             />
             <div className="flex items-baseline justify-between gap-4">
               {isTextInvalid && <FieldError>{t('messageIsRequired')}</FieldError>}
-              <FieldDescription className="ms-auto">{text.length} / 2000</FieldDescription>
+              <FieldDescription className="ms-auto">
+                {t('messageLength', { count: text.length, max: MAX_CONTACT_MESSAGE_LENGTH })}
+              </FieldDescription>
             </div>
           </Field>
 
@@ -140,7 +143,7 @@ export const ContactMeForm = () => {
             <FieldLabel htmlFor="contact-reply-address">{t('whereCanIReply')}</FieldLabel>
             <Input
               id="contact-reply-address"
-              maxLength={320}
+              maxLength={MAX_REPLY_CONTACT_LENGTH}
               name="contact"
               placeholder={t('yourEmailOrAnotherContact')}
               readOnly={isPending}
@@ -151,9 +154,11 @@ export const ContactMeForm = () => {
                 reset();
               }}
             />
-            <FieldDescription className="text-end">{contact.length} / 320</FieldDescription>
+            <FieldDescription className="text-end">
+              {t('replyContactLength', { count: contact.length, max: MAX_REPLY_CONTACT_LENGTH })}
+            </FieldDescription>
           </Field>
-          <Button className="w-full" disabled={isPending} size="lg" type="submit">
+          <Button className="w-full" disabled={isPending} type="submit">
             {isPending ? (
               <>
                 {t('sendingMessage')}

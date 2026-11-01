@@ -6,7 +6,7 @@ import { cookieAuth } from '@/middlewares/cookie-auth.middleware';
 import { validateRequest } from '@/middlewares/validate-request.middleware';
 import { PostsService } from '../services/posts.service';
 import { idioticFieldMultipartFormDataToJsonParser } from '../middlewares/idiotic-field-multipart-form-data-to-json-parser.middleware';
-import { parseFiles } from '../middlewares/parse-files.middleware';
+import { parseFiles, validateNewPostFilesSize, validatePostBodySize } from '../middlewares/parse-files.middleware';
 import { Controller } from '@/shared/controller';
 
 const postsGetValidationRules = [
@@ -17,12 +17,21 @@ const postsGetValidationRules = [
   validateRequest,
 ];
 
-const postCreateValidationRules = [body('text').isString().withMessage('text must be a string'), validateRequest];
+const postCreateValidationRules = [
+  body('text')
+    .isString()
+    .isLength({ max: PostsService.MAX_POST_TEXT_LENGTH })
+    .withMessage(`text must be at most ${PostsService.MAX_POST_TEXT_LENGTH} characters`),
+  validateRequest,
+];
 
 const postUpdateValidationRules = [
   param('id').isString().notEmpty().withMessage('id is required'),
-  body('text').isString().withMessage('text must be a string'),
-  body('attachments').isArray().withMessage('attachments must be an array'),
+  body('text')
+    .isString()
+    .isLength({ max: PostsService.MAX_POST_TEXT_LENGTH })
+    .withMessage(`text must be at most ${PostsService.MAX_POST_TEXT_LENGTH} characters`),
+  body('attachmentsIds').isArray().withMessage('attachmentsIds must be an array'),
   validateRequest,
 ];
 
@@ -60,14 +69,14 @@ export class PostsController extends Controller {
   > = async (request, response) => {
     const id = request.params.id;
     const files = request.files as Array<globalThis.Express.Multer.File>;
-    const attachments = request.body.attachments;
+    const attachmentsIds = request.body.attachmentsIds;
     const text = request.body.text;
 
     const updatedPost = await this.postsService.updatePostById({
       id,
       text,
       files,
-      attachments,
+      attachmentsIds,
     });
 
     return response.send(updatedPost);
@@ -88,12 +97,22 @@ export class PostsController extends Controller {
     this.postsService = parameters.postsService;
 
     this.router.get('/posts', ...postsGetValidationRules, this.getPosts);
-    this.router.post('/posts', cookieAuth, parseFiles, ...postCreateValidationRules, this.createPost);
+    this.router.post(
+      '/posts',
+      cookieAuth,
+      validatePostBodySize,
+      parseFiles,
+      validateNewPostFilesSize,
+      ...postCreateValidationRules,
+      this.createPost,
+    );
     this.router.patch(
       '/posts/:id',
       cookieAuth,
+      validatePostBodySize,
       parseFiles,
-      idioticFieldMultipartFormDataToJsonParser(['attachments']),
+      validateNewPostFilesSize,
+      idioticFieldMultipartFormDataToJsonParser(['attachmentsIds']),
       ...postUpdateValidationRules,
       this.updatePostById,
     );
